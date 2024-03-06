@@ -96,6 +96,20 @@ export const getFeaturesByUnitId = function (id) {
     )
 }
 
+export const getFeaturesByUnitId2 = function (id) {
+  var sql = `select * from features where unit_id = '${id}'`;
+  console.log(sql)
+  return pool.query(sql)
+    .then(res => {
+      return res.rows;//传出查询到的数据
+    })
+    .catch(err => {
+      console.log('查询失败' + err)
+      return false
+    }
+    )
+}
+
 export const getInfoByUnitId = function (id) {
   var sql = `select id, name, type, age, address, person, tel from units where id = '${id}'`;
   console.log(sql)
@@ -144,9 +158,9 @@ export const updateFeatures = async function (items) {
       case 0: {
         var geojsonStr = JSON.stringify({ "type": "Point", "coordinates": geom });
         //默认4326坐标系
-        sql = `insert into point (unit_id, name, geom, radius, color, stroke_width, stroke_color) values 
+        sql = `insert into point (unit_id, name, geom, radius, color, stroke_width) values 
         ('${unitid}', '${item.name}', ST_AsText(ST_GeomFromGeoJSON('${geojsonStr}')),
-        '${style['circle-radius']}','${style['circle-color']}','${style['circle-stroke-width']}','${style['circle-stroke-color']}')`;
+        '${style['circle-radius']}','${style['circle-color']}','${style['circle-stroke-width']}')`;
         break;
       }
       case 1: {
@@ -171,6 +185,80 @@ export const updateFeatures = async function (items) {
     await pool.query(sql);
   }
 
+  clearCache('D:/WebGIS/GeoServer/data_dir/gwc/jswbservice_wb_features');
+  console.log('已清空缓存!');
+  updateConfig()
+
+  //return await getFeaturesByUnitId(unitid)
+}
+
+export const updateFeatures2 = async function (items) {
+  //TODO: 允许items为空, 使能够全部清空, 请求参数中包含id
+  if (items.length == 0)    //防止items[0].unit_id无法获取id
+    return
+
+  await pool.query('BEGIN');
+
+  //更新features数据库
+  var unitid = items[0].unit_id;
+  var deleteSql = `delete from features where unit_id = '${unitid}'`;
+  await pool.query(deleteSql);
+
+  for (var item of items) {
+    const { unit_id, name, type, geometry, description, style1, style2, style3 } = item;
+    const result = await pool.query(
+      'insert into features (unit_id, name, type, geometry, description, style1, style2, style3) values ($1, $2, $3, $4, $5, $6, $7, $8) returning *',
+      [unit_id, name, type, geometry, description, style1, style2, style3]
+    );
+
+    const insertedRecord = result.rows[0];
+  }
+
+  //更新空间数据库
+  await pool.query(`delete from point where unit_id = '${unitid}'`);
+  await pool.query(`delete from line where unit_id = '${unitid}'`);
+  await pool.query(`delete from polygon where unit_id = '${unitid}'`);
+  for (var item of items) {
+    console.log(item)
+    var geom = JSON.parse(item.geometry);
+    //style1-3对应标绘图层的几种样式
+    var style1 = item.style1
+    var style2 = item.style2
+    var style3 = item.style3
+
+    var sql = '';
+    switch (item.type) {
+      case 0: {
+        var geojsonStr = JSON.stringify({ "type": "Point", "coordinates": geom });
+        //默认4326坐标系
+        sql = `insert into point (unit_id, name, geom, radius, color, stroke_width) values 
+        ('${unitid}', '${item.name}', ST_AsText(ST_GeomFromGeoJSON('${geojsonStr}')),
+        ${style1}, ${style2}, ${style3})`;
+        break;
+      }
+      case 1: {
+        var geojsonStr = JSON.stringify({ "type": "Linestring", "coordinates": geom });
+        sql = `insert into line (unit_id, name, geom, width, color, line_type) values 
+        ('${unitid}', '${item.name}', ST_AsText(ST_GeomFromGeoJSON('${geojsonStr}')),
+        ${style1}, ${style2}, ${style3})`;
+        break;
+      }
+      case 2: {
+        var geojsonStr = JSON.stringify({ "type": "Polygon", "coordinates": geom });
+        sql = `insert into polygon (unit_id, name, geom, color, opacity) values 
+        ('${unitid}', '${item.name}', ST_AsText(ST_GeomFromGeoJSON('${geojsonStr}')),
+        ${style1}, ${style2})`;
+        break;
+      }
+      default:
+        break;
+    }
+
+    await pool.query(sql);
+  }
+
+  await pool.query('COMMIT');
+  
   clearCache('D:/WebGIS/GeoServer/data_dir/gwc/jswbservice_wb_features');
   console.log('已清空缓存!');
   updateConfig()

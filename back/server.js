@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import fs from 'fs'
 // import shpwrite from '@mapbox/shp-write';
 import path from 'path';
-import { getUnitList, getFeaturesByUnitId, getInfoByUnitId, updateFeatures, updateInfo, insertUnits, queryFeatures, deleteUnitById } from './app/model/test.model.js';
+import { getUnitList, getFeaturesByUnitId, getFeaturesByUnitId2, getInfoByUnitId, updateFeatures, updateFeatures2, updateInfo, insertUnits, queryFeatures, deleteUnitById } from './app/model/test.model.js';
 
 //import fs from 'fs';
 
@@ -64,16 +64,61 @@ app.delete("/deleteUnitById/:id", async (req, res) => {
 });
 
 
-app.get("/getFeaturesByUnitId/:unitId", async (req, res) => {
+// app.get("/getFeaturesByUnitId/:unitId", async (req, res) => {
+//   const unitId = req.params.unitId;
+//   const data = await getFeaturesByUnitId(unitId);
+
+//   res.status(200).send({
+//     status: 200,
+//     data: data,
+//     message: "success"
+//   });
+// });
+
+app.get("/getFeaturesByUnitId2/:unitId", async (req, res) => {
   const unitId = req.params.unitId;
-  const data = await getFeaturesByUnitId(unitId);
+  const data = await getFeaturesByUnitId2(unitId);
 
   res.status(200).send({
     status: 200,
     data: data,
     message: "success"
   });
+})
+
+
+// //接收一组标绘数据，更新空间数据库和features数据库
+// app.post('/updateFeatures', async (req, res) => {
+//   try {
+//     //const result = await updateFeatures(req.body)
+//     await updateFeatures(req.body)
+//     res.status(200).send({
+//       status: 200,
+//       //data: result,
+//       message: "success"
+//     });
+//   } catch (error) {
+//     console.error('Error inserting record:', error);
+//     res.status(500).json({ success: false, error: 'Internal Server Error' });
+//   }
+// });
+
+//接收一组标绘数据，更新空间数据库和features数据库
+app.post('/updateFeatures2', async (req, res) => {
+  try {
+    //const result = await updateFeatures(req.body)
+    await updateFeatures2(req.body)
+    res.status(200).send({
+      status: 200,
+      //data: result,
+      message: "success"
+    });
+  } catch (error) {
+    console.error('Error inserting record:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
 });
+
 
 app.get("/getInfoByUnitId/:unitId", async (req, res) => {
   const unitId = req.params.unitId;
@@ -85,22 +130,6 @@ app.get("/getInfoByUnitId/:unitId", async (req, res) => {
     message: "success"
   });
 })
-
-//接收一组标绘数据，更新空间数据库和features数据库
-app.post('/updateFeatures', async (req, res) => {
-  try {
-    //const result = await updateFeatures(req.body)
-    await updateFeatures(req.body)
-    res.status(200).send({
-      status: 200,
-      //data: result,
-      message: "success"
-    });
-  } catch (error) {
-    console.error('Error inserting record:', error);
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
-  }
-});
 
 //接收某一文物的属性记录，更新units数据库
 app.post('/updateInfo', async (req, res) => {
