@@ -208,20 +208,10 @@ onUnmounted(() => {
   showVectorLayers();
 });
 
-// TODO: 通过自动计算bound实现定位？
+// 通过自动计算bound实现定位？
 function locate() {
-  // if (drawData.value.length == 0) return;
-  // var item = drawData.value[0];
-  // var geom = JSON.parse(item.geometry);
-  // if (item.type == 0) {
-  //   var locatePoint = geom;
-  // } else if (item.type == 1) {
-  //   var line = turf.lineString(geom);
-  //   var locatePoint = center(line).geometry.coordinates;
-  // } else {
-  //   var polygon = turf.polygon(geom);
-  //   var locatePoint = center(polygon).geometry.coordinates;
-  // }
+  // 若没有标绘数据，则返回
+  if (drawData.value.length == 0) return;
 
   let collection = [];
   for (var item of drawData.value) {
