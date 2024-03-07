@@ -1,0 +1,82 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+
+
+/* .map-overlay {
+	background: rgba(255, 255, 255, 0.7);
+	box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.3);
+	backdrop-filter: blur(10px);
+} */
+
+.map-overlay {
+	/* background: rgba(247, 249, 248); */
+	background: rgb(241, 241, 241);
+	backdrop-filter: blur(10px);
+	box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.1);
+	box-sizing: border-box; /* 内边框 */
+	border: 1px solid #cacaca;
+	z-index: 1000;
+}
+
+.map-overlay-left {
+	background: rgba(247, 249, 248);
+	backdrop-filter: blur(10px);
+	box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.1);
+	box-sizing: border-box; /* 内边框 */
+	border-right: 1px solid #cacaca;
+	border-bottom: 1px solid #cacaca;
+	z-index: 1000;
+}
+
+.map-overlay-right {
+	background: rgba(247, 249, 248);
+	backdrop-filter: blur(10px);
+	box-shadow: -2px 2px 7px rgba(0, 0, 0, 0.1);
+	box-sizing: border-box; /* 内边框 */
+	border-left: 1px solid #cacaca;
+	border-bottom: 1px solid #cacaca;
+	z-index: 1000;
+}
+
+@font-face {
+	font-family: 思源黑体Bold;
+	src: url(../font/思源黑体Bold.otf);
+}
+
+@font-face {
+	font-family: 思源黑体N;
+	src: url(../font/SourceHanSansCN-Normal.otf);
+}
+
+@font-face {
+	font-family: 思源黑体M;
+	src: url(../font/SourceHanSansCN-Medium.otf);
+}
+
+@font-face {
+	font-family: 思源黑体L;
+	src: url(../font/SourceHanSansCN-Light.otf);
+}
+
+@font-face {
+	font-family: 思源黑体R;
+	src: url(../font/SourceHanSansCN-Regular.otf);
+}
