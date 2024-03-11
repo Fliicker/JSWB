@@ -22,11 +22,11 @@ export default {
 };
 </script>
 
+<script setup></script>
+
 <style lang="scss" scoped>
 .home {
   position: absolute;
-  background: url(../assets/testbackground.png) no-repeat center center;
-  background-size: 100% 100%;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -54,7 +54,7 @@ export default {
     top: 8vh;
     height: 92vh;
     width: 100vw;
-    overflow: auto;
+    // overflow: auto;
     /* box-shadow: 0px 0px 10px 10px rgba(0, 0, 0, 0.3); */
   }
 }

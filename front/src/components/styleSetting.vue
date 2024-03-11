@@ -148,9 +148,8 @@ export default defineComponent({
 </script>
 
 <script setup>
-const props = defineProps(["drawData", "map", "featureName"]);
-const map = props.map;
-const drawData = props.drawData;
+const props = defineProps(["unitId", "drawData", "map", "featureName"]);
+const { unitId, drawData, map, featureName } = props;
 const styleConfig = inject("styleConfig");
 
 const geomTypeKeys = ["pointStyle", "lineStyle", "polygonStyle"];
@@ -174,7 +173,11 @@ watch(
     var styleValue = styleConfig[geomTypeKeys[geomType]].style1.options[newVal].value;
     currentFeature.style1 = newVal;
     emit("styleChangeEvent", drawData);
-    map.setPaintProperty(props.featureName + "-layer", styleKey, styleValue);
+    map.setPaintProperty(
+      unitId + "-" + props.featureName + "-layer",
+      styleKey,
+      styleValue
+    );
     changeDrawStyle(geomType, styleKey, styleValue);
   }
 );
@@ -186,7 +189,11 @@ watch(
     var styleValue = styleConfig[geomTypeKeys[geomType]].style2.options[newVal].value;
     currentFeature.style2 = newVal;
     emit("styleChangeEvent", drawData);
-    map.setPaintProperty(props.featureName + "-layer", styleKey, styleValue);
+    map.setPaintProperty(
+      unitId + "-" + props.featureName + "-layer",
+      styleKey,
+      styleValue
+    );
     changeDrawStyle(geomType, styleKey, styleValue);
   }
 );
@@ -198,7 +205,11 @@ watch(
     var styleValue = styleConfig[geomTypeKeys[geomType]].style3.options[newVal].value;
     currentFeature.style3 = newVal;
     emit("styleChangeEvent", drawData);
-    map.setPaintProperty(props.featureName + "-layer", styleKey, styleValue);
+    map.setPaintProperty(
+      unitId + "-" + props.featureName + "-layer",
+      styleKey,
+      styleValue
+    );
     changeDrawStyle(geomType, styleKey, styleValue);
   }
 );

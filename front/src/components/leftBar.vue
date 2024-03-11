@@ -191,7 +191,7 @@ function deleteById(unitid) {
       }
 
       axios
-        .delete(`http://localhost:8181/deleteUnitById/${unitid}`)
+        .delete(`http://localhost:8181/api/units/info/${unitid}`)
         .then((res) => {
           console.log(res.data);
           emit("refreshData");
@@ -241,7 +241,7 @@ function handleClick(id) {
 }
 
 function updateVectorLayers() {
-  axios.get("http://localhost:8181/mapVersion", { responseType: "json" }).then((res) => {
+  axios.get("http://localhost:8181/api/map/version", { responseType: "json" }).then((res) => {
     var mapVersion = res.data.data;
     map
       .getSource("vector-source")

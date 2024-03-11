@@ -57,7 +57,7 @@ var exportInfoData = null;
 
 function exportInfo() {
   axios
-    .get("http://localhost:8181/unitList", { responseType: "json" })
+    .get("http://localhost:8181/api/units/info", { responseType: "json" })
     .then((res) => {
       exportInfoData = res.data.data;
 
@@ -99,46 +99,45 @@ function exportInfo() {
 
 async function exportFeature() {
   try {
-    const point = await axios.get("http://localhost:8181/export/geojson/point");
-    const line = await axios.get("http://localhost:8181/export/geojson/line");
-    const polygon = await axios.get("http://localhost:8181/export/geojson/polygon");
-    var options1 = {
-      //folder: "my_internal_shapes_folder",
-      filename: "地图标绘_点",
-      outputType: "blob", // 避免导出空文件
-      //compression: "DEFLATE",
-      types: {
-        point: "points",
-        polygon: "polygons",
-        polyline: "lines",
-      },
-    };
-    var options2 = {
-      filename: "地图标绘_线",
-      outputType: "blob", // 避免导出空文件
-      types: {
-        point: "points",
-        polygon: "polygons",
-        polyline: "lines",
-      },
-    };
-    var options3 = {
-      filename: "地图标绘_面",
-      outputType: "blob", // 避免导出空文件
-      types: {
-        point: "points",
-        polygon: "polygons",
-        polyline: "lines",
-      },
-    };
-
     if (featureExportType.value == "type1") {
+      const point = await axios.get("http://localhost:8181/api/units/features/export/geojson/point");
+      const line = await axios.get("http://localhost:8181/api/units/features/export/geojson/line");
+      const polygon = await axios.get("http://localhost:8181/api/units/features/export/geojson/polygon");
+      var options1 = {
+        //folder: "my_internal_shapes_folder",
+        filename: "地图标绘_点",
+        outputType: "blob", // 避免导出空文件
+        //compression: "DEFLATE",
+        types: {
+          point: "points",
+          polygon: "polygons",
+          polyline: "lines",
+        },
+      };
+      var options2 = {
+        filename: "地图标绘_线",
+        outputType: "blob", // 避免导出空文件
+        types: {
+          point: "points",
+          polygon: "polygons",
+          polyline: "lines",
+        },
+      };
+      var options3 = {
+        filename: "地图标绘_面",
+        outputType: "blob", // 避免导出空文件
+        types: {
+          point: "points",
+          polygon: "polygons",
+          polyline: "lines",
+        },
+      };
+
       shpwrite.download(point.data, options1);
       shpwrite.download(line.data, options2);
       shpwrite.download(polygon.data, options3);
 
-      //TODO:
-      //线标绘shp有bug
+      //TODO:线标绘shp有bug
       // 属性表中文乱码
 
       // const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -148,9 +147,8 @@ async function exportFeature() {
       // document.body.appendChild(link);
       // link.click();
     } else if (featureExportType.value == "type2") {
-      downloadJson(point.data, "地图标绘_点.geojson");
-      downloadJson(line.data, "地图标绘_线.geojson");
-      downloadJson(polygon.data, "地图标绘_面.geojson");
+      const geojson = await axios.get("http://localhost:8181/api/units/features/export/geojson");
+      downloadJson(geojson.data, "地图标绘.geojson");
     }
   } catch (error) {
     console.error("Error exporting data:", error);

@@ -60,17 +60,20 @@ reset();
 
 function reset() {
   axios
-    .get(`http://localhost:8181/getInfoByUnitId/${unitId}`, {
+    .get(`http://localhost:8181/api/units/info/${unitId}`, {
       responseType: "json",
     })
     .then((res) => {
       propertyData.value = res.data.data;
+    })
+    .catch((error) => {
+      console.error("API Error:", error.response.data);
     });
 }
 
 function save() {
   axios
-    .post("http://localhost:8181/updateInfo", propertyData.value)
+    .put(`http://localhost:8181/api/units/info/${unitId}`, propertyData.value)
     .then((res) => {
       console.log(res.data);
     })

@@ -71,7 +71,7 @@ async function addARecord() {
   await formRef.value.validate((valid, fields) => {
     if (valid) {
       axios
-        .post("http://localhost:8181/addUnits", [newdata.value])
+        .post("http://localhost:8181/api/units/info", [newdata.value])
         .then((res) => {
           console.log(res.data);
           console.log("submit!");

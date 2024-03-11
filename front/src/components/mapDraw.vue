@@ -102,6 +102,7 @@
       <el-row><span class="subtitle">&nbsp;&nbsp; 样式设置</span></el-row>
       <div id="style-setting" class="box-area">
         <styleSetting
+          :unitId="unitId"
           :drawData="drawData"
           :map="map"
           :featureName="currentFeatureName"
@@ -142,6 +143,7 @@ import bbox from "@turf/bbox";
 import styleSetting from "@/components/styleSetting.vue";
 import infoSetting from "@/components/infoSetting.vue";
 //import { useStore } from "@/stores/index.js";
+//import { ElLoading } from "element-plus";       //采用了自动引入, 再次引入会出问题！
 
 export default defineComponent({
   name: "mapDraw",
@@ -155,6 +157,11 @@ export default defineComponent({
 
 <script setup>
 //const drawTypeCollection = { 0: "点标绘", 1: "线标绘", 2: "面标绘" };
+const loadingOptions = {
+  lock: true,
+  text: "请稍等...",
+  background: "rgba(0, 0, 0, 0.7)",
+};
 
 const drawTypeOptions = [
   { id: 0, label: "点标绘", value: 0 },
@@ -180,16 +187,31 @@ const popVisible = ref(false);
 
 const styleConfig = inject("styleConfig");
 
-axios
-  .get(`http://localhost:8181/getFeaturesByUnitId2/${props.unitId}`, {
-    responseType: "json",
-  })
-  .then((res) => {
-    drawData.value = res.data.data;
-    locate();
-    createDrawLayers(); //文保单位对应的要素集合进入编辑状态
-    hideVectorLayers(); //对应矢量切片隐藏
-  });
+onMounted(() => {
+  const loadingInstance = ElLoading.service(loadingOptions);
+  document.body.classList.remove("el-loading-parent--relative"); //TODO:不加这句遮罩层下不显示元素, 什么原因？？
+  axios
+    .get(`http://localhost:8181/api/units/features/${props.unitId}`, {
+      responseType: "json",
+    })
+    .then((res) => {
+      drawData.value = res.data.data;
+      loadingInstance.close();
+      locate();
+      createDrawLayers(); //文保单位对应的要素集合进入编辑状态
+      hideVectorLayers(); //对应矢量切片隐藏
+    })
+    .catch((error) => {
+      loadingInstance.close();
+      console.error("API Error:", error.response.data);
+      ElNotification({
+        title: "失败",
+        message: "获取标绘信息失败",
+        position: "bottom-right",
+        type: "error",
+      });
+    });
+});
 
 watch(currentFeatureName, (newVal, oldVal) => {
   if (oldVal) {
@@ -272,15 +294,15 @@ function generatePaint(styleType, style1, style2, style3) {
 
 function removeDrawLayers() {
   for (var item of drawData.value) {
-    map.removeLayer(item.name + "-layer");
-    map.removeSource(item.name + "-source");
+    map.removeLayer(props.unitId + "-" + item.name + "-layer");
+    map.removeSource(props.unitId + "-" + item.name + "-source");
   }
 }
 
 function createDrawLayers() {
   for (var item of drawData.value) {
-    var sourceName = item.name + "-source";
-    var layerName = item.name + "-layer";
+    var sourceName = props.unitId + "-" + item.name + "-source";
+    var layerName = props.unitId + "-" + item.name + "-layer";
     var geom = JSON.parse(item.geometry);
     var style = {};
     //补全空样式值
@@ -406,7 +428,7 @@ function addDrawLayer() {
     });
     const mapboxLayerType = { 0: "circle", 1: "line", 2: "fill" };
     const locationLayer = { 0: "pointLocation", 1: "lineLocation", 2: "fillLocation" };
-    map.addSource(drawNameAdd.value + "-source", {
+    map.addSource(props.unitId + "-" + drawNameAdd.value + "-source", {
       type: "geojson",
       // data: null,  //// data设为null会导致图层残留!!!
       data: {
@@ -416,9 +438,9 @@ function addDrawLayer() {
     });
     map.addLayer(
       {
-        id: drawNameAdd.value + "-layer",
+        id: props.unitId + "-" + drawNameAdd.value + "-layer",
         type: mapboxLayerType[drawTypeAdd.value],
-        source: drawNameAdd.value + "-source",
+        source: props.unitId + "-" + drawNameAdd.value + "-source",
         paint: generatePaint(geomTypeKeys[drawTypeAdd.value], style1, style2, style3),
       },
       locationLayer[drawTypeAdd.value]
@@ -438,8 +460,8 @@ function deleteDrawLayer() {
   })
     .then(() => {
       uneditFeature(currentFeatureName.value);
-      map.removeLayer(currentFeatureName.value + "-layer");
-      map.removeSource(currentFeatureName.value + "-source");
+      map.removeLayer(props.unitId + "-" + currentFeatureName.value + "-layer");
+      map.removeSource(props.unitId + "-" + currentFeatureName.value + "-source");
       drawData.value = drawData.value.filter(
         (item) => item.name !== currentFeatureName.value
       );
@@ -480,7 +502,7 @@ function showVectorLayers() {
 }
 
 function updateVectorLayers() {
-  axios.get("http://localhost:8181/mapVersion", { responseType: "json" }).then((res) => {
+  axios.get("http://localhost:8181/api/map/version", { responseType: "json" }).then((res) => {
     var mapVersion = res.data.data;
     map
       .getSource("vector-source")
@@ -493,13 +515,17 @@ function updateVectorLayers() {
 
 function editFeature(featureName) {
   const currentFeature = drawData.value.find((item) => item.name === featureName);
-  var feature = map.getSource(featureName + "-source")._data;
+  var feature = map.getSource(props.unitId + "-" + featureName + "-source")._data;
 
   if (feature) {
     //const featureId = currentFeature.name + "-draw";
     //feature.id = featureId;
     const featureId = draw.add(feature)[0];
-    map.setLayoutProperty(featureName + "-layer", "visibility", "none");
+    map.setLayoutProperty(
+      props.unitId + "-" + featureName + "-layer",
+      "visibility",
+      "none"
+    );
     draw.changeMode("simple_select", { featureIds: [featureId] });
   }
 }
@@ -512,10 +538,14 @@ function uneditFeature(featureName) {
   var drawFeature = draw.getAll().features[0];
   var currentFeature = drawData.value.find((item) => item.name === featureName);
   currentFeature.geometry = JSON.stringify(drawFeature.geometry.coordinates);
-  map.getSource(featureName + "-source").setData(drawFeature);
+  map.getSource(props.unitId + "-" + featureName + "-source").setData(drawFeature);
   //draw.delete(featureId);
   draw.deleteAll();
-  map.setLayoutProperty(featureName + "-layer", "visibility", "visible");
+  map.setLayoutProperty(
+    props.unitId + "-" + featureName + "-layer",
+    "visibility",
+    "visible"
+  );
 
   draw.changeMode("simple_select");
 }
@@ -533,13 +563,23 @@ function startDraw() {
 function saveAll() {
   uneditFeature(currentFeatureName.value);
   currentFeatureName.value = "";
+  const loadingInstance = ElLoading.service(loadingOptions);
+  document.body.classList.remove("el-loading-parent--relative");
   axios
-    .post("http://localhost:8181/updateFeatures2", drawData.value)
+    .put(`http://localhost:8181/api/units/features/${props.unitId}`, drawData.value)
     .then((res) => {
       updateVectorLayers();
+      loadingInstance.close();
     })
     .catch((error) => {
+      loadingInstance.close();
       console.error("API Error:", error.response.data);
+      // ElNotification({
+      //   title: "失败",
+      //   message: "保存失败",
+      //   position: "bottom-right",
+      //   type: "error",
+      // });
     });
 }
 

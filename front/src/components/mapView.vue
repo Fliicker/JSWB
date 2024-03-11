@@ -205,7 +205,7 @@ function clearCurrentUnit() {
 }
 
 function refreshData() {
-  axios.get("http://localhost:8181/unitList", { responseType: "json" }).then((res) => {
+  axios.get("http://localhost:8181/api/units/info", { responseType: "json" }).then((res) => {
     data.value = res.data.data;
   });
 }
@@ -345,7 +345,7 @@ onMounted(async () => {
 
   map.on("load", async function () {
     await axios
-      .get("http://localhost:8181/unitList", { responseType: "json" })
+      .get("http://localhost:8181/api/units/info", { responseType: "json" })
       .then((res) => {
         data.value = res.data.data;
         createVectorLayers();
@@ -366,7 +366,7 @@ onMounted(async () => {
   async function createVectorLayers() {
     var mapVersion;
     await axios
-      .get("http://localhost:8181/mapVersion", { responseType: "json" })
+      .get("http://localhost:8181/api/map/version", { responseType: "json" })
       .then((res) => {
         mapVersion = res.data.data;
         console.log(mapVersion);

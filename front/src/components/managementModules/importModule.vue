@@ -281,7 +281,7 @@ function importData() {
   });
 
   axios
-    .post("http://localhost:8181/addUnits", reconstructedData)
+    .post("http://localhost:8181/api/units/info", reconstructedData)
     .then((res) => {
       console.log(res.data);
       ElNotification({
