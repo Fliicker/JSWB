@@ -39,8 +39,7 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, ref } from "vue";
-import axios from "axios";
+import { defineComponent, onMounted, ref, getCurrentInstance } from "vue";
 
 export default defineComponent({
   name: "addModule",
@@ -49,6 +48,8 @@ export default defineComponent({
 </script>
 
 <script setup>
+const { proxy } = getCurrentInstance();
+
 const formRef = ref();
 
 const newdata = ref({
@@ -70,8 +71,8 @@ async function addARecord() {
   if (!formRef) return;
   await formRef.value.validate((valid, fields) => {
     if (valid) {
-      axios
-        .post("http://localhost:8181/api/units/info", [newdata.value])
+      proxy.$axios
+        .post("/api/units/info", [newdata.value])
         .then((res) => {
           console.log(res.data);
           console.log("submit!");

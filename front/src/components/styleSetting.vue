@@ -137,7 +137,6 @@ import {
   ref,
   inject,
 } from "vue";
-import axios from "axios";
 import * as turf from "@turf/helpers";
 
 export default defineComponent({

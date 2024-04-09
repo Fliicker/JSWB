@@ -136,8 +136,8 @@ import {
   watch,
   computed,
   inject,
+  getCurrentInstance
 } from "vue";
-import axios from "axios";
 import * as turf from "@turf/helpers";
 import bbox from "@turf/bbox";
 import styleSetting from "@/components/styleSetting.vue";
@@ -156,6 +156,7 @@ export default defineComponent({
 </script>
 
 <script setup>
+const { proxy } = getCurrentInstance();
 //const drawTypeCollection = { 0: "点标绘", 1: "线标绘", 2: "面标绘" };
 const loadingOptions = {
   lock: true,
@@ -190,8 +191,8 @@ const styleConfig = inject("styleConfig");
 onMounted(() => {
   const loadingInstance = ElLoading.service(loadingOptions);
   document.body.classList.remove("el-loading-parent--relative"); //TODO:不加这句遮罩层下不显示元素, 什么原因？？
-  axios
-    .get(`http://localhost:8181/api/units/features/${props.unitId}`, {
+  proxy.$axios
+    .get(`/api/units/features/${props.unitId}`, {
       responseType: "json",
     })
     .then((res) => {
@@ -502,8 +503,8 @@ function showVectorLayers() {
 }
 
 function updateVectorLayers() {
-  axios
-    .get("http://localhost:8181/api/map/version", { responseType: "json" })
+  proxy.$axios
+    .get("/api/map/version", { responseType: "json" })
     .then((res) => {
       var mapVersion = res.data.data;
       map
@@ -513,7 +514,7 @@ function updateVectorLayers() {
         //     mapVersion,
         // ]);
         .setTiles([
-          "http://localhost:8181/api/map/getMvt/{z}/{x}/{y}?version=" + mapVersion,
+          import.meta.env.VITE_APP_SERVER_URL + "/api/map/getMvt/{z}/{x}/{y}?version=" + mapVersion,
         ]);
     });
 }
@@ -570,8 +571,8 @@ function saveAll() {
   currentFeatureName.value = "";
   const loadingInstance = ElLoading.service(loadingOptions);
   document.body.classList.remove("el-loading-parent--relative");
-  axios
-    .put(`http://localhost:8181/api/units/features/${props.unitId}`, drawData.value)
+  proxy.$axios
+    .put(`/api/units/features/${props.unitId}`, drawData.value)
     .then((res) => {
       updateVectorLayers();
       loadingInstance.close();

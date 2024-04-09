@@ -32,8 +32,7 @@
 </template>
 
 <script>
-import { defineComponent, defineProps, onMounted, ref } from "vue";
-import axios from "axios";
+import { defineComponent, defineProps, onMounted, ref, getCurrentInstance } from "vue";
 
 export default defineComponent({
   name: "infoSetting",
@@ -47,8 +46,10 @@ const props = defineProps(["unitId"]);
 const unitId = props.unitId;
 const propertyData = ref(null);
 
+const { proxy } = getCurrentInstance();
+
 // axios
-//   .get(`http://localhost:8181/getInfoByUnitId/${unitId}`, {
+//   .get(`/getInfoByUnitId/${unitId}`, {
 //     responseType: "json",
 //   })
 //   .then((res) => {
@@ -59,8 +60,8 @@ const propertyData = ref(null);
 reset();
 
 function reset() {
-  axios
-    .get(`http://localhost:8181/api/units/info/${unitId}`, {
+  proxy.$axios
+    .get(`/api/units/info/${unitId}`, {
       responseType: "json",
     })
     .then((res) => {
@@ -72,8 +73,8 @@ function reset() {
 }
 
 function save() {
-  axios
-    .put(`http://localhost:8181/api/units/info/${unitId}`, propertyData.value)
+  proxy.$axios
+    .put(`/api/units/info/${unitId}`, propertyData.value)
     .then((res) => {
       console.log(res.data);
     })

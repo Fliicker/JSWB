@@ -110,9 +110,16 @@
 </template>
 
 <script>
-import { defineComponent, defineProps, defineEmits, onMounted, ref, computed } from "vue";
+import {
+  defineComponent,
+  defineProps,
+  defineEmits,
+  onMounted,
+  ref,
+  computed,
+  getCurrentInstance,
+} from "vue";
 import { Search, Close, LocationFilled, Minus, Refresh } from "@element-plus/icons-vue";
-import axios from "axios";
 
 export default defineComponent({
   name: "leftBar",
@@ -121,6 +128,8 @@ export default defineComponent({
 </script>
 
 <script setup>
+const { proxy } = getCurrentInstance();
+
 const props = defineProps(["listData", "map"]);
 const map = props.map;
 
@@ -190,8 +199,8 @@ function deleteById(unitid) {
         currentUnitId.value = "";
       }
 
-      axios
-        .delete(`http://localhost:8181/api/units/info/${unitid}`)
+      proxy.$axios
+        .delete(`/api/units/info/${unitid}`)
         .then((res) => {
           console.log(res.data);
           emit("refreshData");
@@ -241,20 +250,20 @@ function handleClick(id) {
 }
 
 function updateVectorLayers() {
-  axios
-    .get("http://localhost:8181/api/map/version", { responseType: "json" })
-    .then((res) => {
-      var mapVersion = res.data.data;
-      map
-        .getSource("vector-source")
-        // .setTiles([
-        //   "http://localhost:8080/geoserver/gwc/service/tms/1.0.0/jswbservice%3Awb_features@EPSG%3A900913@pbf/{z}/{x}/{y}.pbf?version=" +
-        //     mapVersion,
-        // ]);
-        .setTiles([
-          "http://localhost:8181/api/map/getMvt/{z}/{x}/{y}?version=" + mapVersion
-        ])
-    });
+  proxy.$axios.get("/api/map/version", { responseType: "json" }).then((res) => {
+    var mapVersion = res.data.data;
+    map
+      .getSource("vector-source")
+      // .setTiles([
+      //   "http://localhost:8080/geoserver/gwc/service/tms/1.0.0/jswbservice%3Awb_features@EPSG%3A900913@pbf/{z}/{x}/{y}.pbf?version=" +
+      //     mapVersion,
+      // ]);
+      .setTiles([
+        import.meta.env.VITE_APP_SERVER_URL +
+          "/api/map/getMvt/{z}/{x}/{y}?version=" +
+          mapVersion,
+      ]);
+  });
 }
 
 onMounted(() => {});

@@ -137,11 +137,10 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, ref, getCurrentInstance } from "vue";
 import Papa from "papaparse";
 import Xlsx from "xlsx";
 import { genFileId } from "element-plus";
-import axios from "axios";
 
 export default defineComponent({
   name: "importModule",
@@ -150,6 +149,8 @@ export default defineComponent({
 </script>
 
 <script setup>
+const { proxy } = getCurrentInstance();
+
 const typeRadio = ref("type1"); //上传格式
 const importOptionRadio = ref("opt1"); //导入方式
 
@@ -280,8 +281,8 @@ function importData() {
     return newItem;
   });
 
-  axios
-    .post("http://localhost:8181/api/units/info", reconstructedData)
+  proxy.$axios
+    .post("/api/units/info", reconstructedData)
     .then((res) => {
       console.log(res.data);
       ElNotification({

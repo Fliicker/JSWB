@@ -49,7 +49,6 @@
 <script>
 import mapboxgl from "mapbox-gl";
 
-import axios from "axios";
 import "mapbox-gl/dist/mapbox-gl.css";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
@@ -57,7 +56,7 @@ import leftBar from "@/components/leftBar.vue";
 // import infoBox from "@/components/infoBox.vue";
 import mapDraw from "@/components/mapDraw.vue";
 import dataManagement from "@/components/dataManagement.vue";
-import { defineComponent, onMounted, ref, computed, provide } from "vue";
+import { defineComponent, onMounted, ref, computed, provide, getCurrentInstance } from "vue";
 import { FullScreen } from "@element-plus/icons-vue";
 //import { useStore } from "@/stores/index.js";
 
@@ -73,7 +72,8 @@ export default defineComponent({
 </script>
 
 <script setup>
-//const store = useStore();
+const { proxy } = getCurrentInstance();
+
 var map = null;
 var draw = null;
 
@@ -205,8 +205,8 @@ function clearCurrentUnit() {
 }
 
 function refreshData() {
-  axios
-    .get("http://localhost:8181/api/units/info", { responseType: "json" })
+  proxy.$axios
+    .get("/api/units/info", { responseType: "json" })
     .then((res) => {
       data.value = res.data.data;
     });
@@ -344,8 +344,8 @@ onMounted(async () => {
   //map.addControl(new mapboxgl.FullscreenControl(), "top-left");
 
   map.on("load", async function () {
-    await axios
-      .get("http://localhost:8181/api/units/info", { responseType: "json" })
+    await proxy.$axios
+      .get("/api/units/info", { responseType: "json" })
       .then((res) => {
         data.value = res.data.data;
         createVectorLayers();
@@ -365,8 +365,8 @@ onMounted(async () => {
 
   async function createVectorLayers() {
     var mapVersion;
-    await axios
-      .get("http://localhost:8181/api/map/version", { responseType: "json" })
+    await proxy.$axios
+      .get("/api/map/version", { responseType: "json" })
       .then((res) => {
         mapVersion = res.data.data;
         console.log(mapVersion);
@@ -380,7 +380,7 @@ onMounted(async () => {
       //     mapVersion,
       // ],
       scheme: "xyz",
-      tiles: ["http://localhost:8181/api/map/getMvt/{z}/{x}/{y}"],
+      tiles: [import.meta.env.VITE_APP_SERVER_URL + "/api/map/getMvt/{z}/{x}/{y}"],
     });
 
     map.addLayer({
