@@ -49,6 +49,7 @@ app.get('/api/units/features/export/geojson/line', drawController.exportLine);
 app.get('/api/units/features/export/geojson/polygon', drawController.exportPolygon);
 
 // 地图接口
+app.get('/api/map/getMvt/:z/:x/:y', mapController.getMvt);
 app.get('/api/map/version', mapController.getMapVersion);
 
 

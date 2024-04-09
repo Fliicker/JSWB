@@ -502,15 +502,20 @@ function showVectorLayers() {
 }
 
 function updateVectorLayers() {
-  axios.get("http://localhost:8181/api/map/version", { responseType: "json" }).then((res) => {
-    var mapVersion = res.data.data;
-    map
-      .getSource("vector-source")
-      .setTiles([
-        "http://localhost:8080/geoserver/gwc/service/tms/1.0.0/jswbservice%3Awb_features@EPSG%3A900913@pbf/{z}/{x}/{y}.pbf?version=" +
-          mapVersion,
-      ]);
-  });
+  axios
+    .get("http://localhost:8181/api/map/version", { responseType: "json" })
+    .then((res) => {
+      var mapVersion = res.data.data;
+      map
+        .getSource("vector-source")
+        // .setTiles([
+        //   "http://localhost:8080/geoserver/gwc/service/tms/1.0.0/jswbservice%3Awb_features@EPSG%3A900913@pbf/{z}/{x}/{y}.pbf?version=" +
+        //     mapVersion,
+        // ]);
+        .setTiles([
+          "http://localhost:8181/api/map/getMvt/{z}/{x}/{y}?version=" + mapVersion,
+        ]);
+    });
 }
 
 function editFeature(featureName) {

@@ -205,9 +205,11 @@ function clearCurrentUnit() {
 }
 
 function refreshData() {
-  axios.get("http://localhost:8181/api/units/info", { responseType: "json" }).then((res) => {
-    data.value = res.data.data;
-  });
+  axios
+    .get("http://localhost:8181/api/units/info", { responseType: "json" })
+    .then((res) => {
+      data.value = res.data.data;
+    });
 }
 
 //切换底图
@@ -234,10 +236,8 @@ function generateMatchStatement(styleType, style, fieldName) {
   const matchStatement = ["match", ["get", fieldName]];
   var styleObj = styleConfig[styleType][style];
   styleObj.options.forEach((item, index) => {
-    ////
-    //// match字段必须用字符串!!!
-    ////
-    matchStatement.push(index.toString());
+    //matchStatement.push(index.toString());
+    matchStatement.push(index);
     matchStatement.push(item.value);
   });
   // 添加默认值
@@ -374,11 +374,13 @@ onMounted(async () => {
 
     map.addSource("vector-source", {
       type: "vector",
-      scheme: "tms",
-      tiles: [
-        "http://localhost:8080/geoserver/gwc/service/tms/1.0.0/jswbservice%3Awb_features@EPSG%3A900913@pbf/{z}/{x}/{y}.pbf?version=" +
-          mapVersion,
-      ],
+      // scheme: "tms",
+      // tiles: [
+      //   "http://localhost:8080/geoserver/gwc/service/tms/1.0.0/jswbservice%3Awb_features@EPSG%3A900913@pbf/{z}/{x}/{y}.pbf?version=" +
+      //     mapVersion,
+      // ],
+      scheme: "xyz",
+      tiles: ["http://localhost:8181/api/map/getMvt/{z}/{x}/{y}"],
     });
 
     map.addLayer({

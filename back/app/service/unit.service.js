@@ -31,8 +31,8 @@ class UnitService {
 
       await client.query('COMMIT');
 
-      MapService.clearCache('D:/WebGIS/GeoServer/data_dir/gwc/jswbservice_wb_features');
-      console.log('已清空缓存!');
+      // MapService.clearCache('D:/WebGIS/GeoServer/data_dir/gwc/jswbservice_wb_features');
+      // console.log('已清空缓存!');
       MapService.updateConfig()
 
       return null;
