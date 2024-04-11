@@ -32,9 +32,9 @@ class UnitDao {
       await client.query('BEGIN');
 
       for (var record of data) {
-        const { id, name, type, age, address, person, tel } = record;
-        var insertSql = 'insert into units (id, name, type, age, address, person, tel) values ($1, $2, $3, $4, $5, $6, $7) returning *';
-        await pool.query(insertSql, [id, name, type, age, address, person, tel]);
+        const { survey3_id, name, type, age, address, person, tel } = record;
+        var insertSql = 'insert into units (survey3_id, name, type, age, address, person, tel) values ($1, $2, $3, $4, $5, $6, $7) returning *';
+        await pool.query(insertSql, [survey3_id, name, type, age, address, person, tel]);
       }
 
       await client.query('COMMIT');
@@ -62,8 +62,8 @@ class UnitDao {
   }
 
   async updateUnitById(id, record) {
-    const { type, age, address, person, tel } = record;
-    return this.query('UPDATE units SET type = $1, age = $2, address = $3, person = $4, tel = $5 WHERE id = $6 returning *', [type, age, address, person, tel, id]);
+    const { survey3_id, name, type, age, address, person, tel } = record;
+    return this.query('UPDATE units SET type = $1, age = $2, address = $3, person = $4, tel = $5, name = $6, survey3_id = $7 WHERE id = $8 returning *', [type, age, address, person, tel, name, survey3_id ,id]);
   }
 
   async deleteUnitById(client, id) {

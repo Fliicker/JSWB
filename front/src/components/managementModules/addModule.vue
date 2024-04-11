@@ -13,7 +13,7 @@
           <el-input v-model="newdata.name" />
         </el-form-item>
         <el-form-item label="编号" prop="id">
-          <el-input v-model="newdata.id" />
+          <el-input v-model="newdata.survey3_id" />
         </el-form-item>
         <el-form-item label="类型" prop="type">
           <el-input v-model="newdata.type" />
@@ -24,12 +24,12 @@
         <el-form-item label="地址" prop="address">
           <el-input v-model="newdata.address" />
         </el-form-item>
-        <el-form-item label="负责人姓名" prop="person">
+        <!-- <el-form-item label="负责人姓名" prop="person">
           <el-input v-model="newdata.person" />
         </el-form-item>
         <el-form-item label="联系电话" prop="tel">
           <el-input v-model="newdata.tel" />
-        </el-form-item>
+        </el-form-item> -->
       </el-scrollbar>
     </el-form>
   </div>
@@ -53,17 +53,17 @@ const { proxy } = getCurrentInstance();
 const formRef = ref();
 
 const newdata = ref({
-  id: "",
+  survey3_id: "",
   name: "",
   type: "",
   age: "",
   address: "",
-  person: "",
-  tel: "",
+  // person: "",
+  // tel: "",
 });
 
 const rules = ref({
-  id: [{ required: true, message: "文物编号不能为空！", trigger: "blur" }],
+  survey3_id: [{ required: true, message: "文物编号不能为空！", trigger: "blur" }],
   name: [{ required: true, message: "文物名称不能为空！", trigger: "blur" }],
 });
 

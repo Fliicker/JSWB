@@ -1,29 +1,41 @@
 <template>
   <div v-if="propertyData != null">
     <el-row align="middle">
-      <el-col :span="10" class="text">类型：</el-col>
-      <el-col :span="14">
+      <el-col :span="7" class="text">名称：</el-col>
+      <el-col :span="17">
+        <el-input v-model="propertyData.name" placeholder="暂无" />
+      </el-col>
+    </el-row>
+    <el-row align="middle">
+      <el-col :span="7" class="text">编号：</el-col>
+      <el-col :span="17">
+        <el-input v-model="propertyData.survey3_id" placeholder="暂无" />
+      </el-col>
+    </el-row>
+    <el-row align="middle">
+      <el-col :span="7" class="text">类型：</el-col>
+      <el-col :span="17">
         <el-input v-model="propertyData.type" placeholder="暂无" />
       </el-col>
     </el-row>
     <el-row align="middle">
-      <el-col :span="10" class="text">年代：</el-col>
-      <el-col :span="14">
+      <el-col :span="7" class="text">年代：</el-col>
+      <el-col :span="17">
         <el-input v-model="propertyData.age" placeholder="暂无" />
       </el-col>
     </el-row>
     <el-row align="middle">
-      <el-col :span="10" class="text">地址：</el-col>
-      <el-col :span="14">
+      <el-col :span="7" class="text">地址：</el-col>
+      <el-col :span="17">
         <el-input v-model="propertyData.address" placeholder="暂无" />
       </el-col>
     </el-row>
-    <el-row align="middle">
+    <!-- <el-row align="middle">
       <el-col :span="10" class="text">负责人：</el-col>
       <el-col :span="14">
         <el-input v-model="propertyData.person" placeholder="暂无" />
       </el-col>
-    </el-row>
+    </el-row> -->
     <el-row justify="center" align="middle" class="button-group">
       <el-button size="small" class="btn-reset" @click="reset()">重置</el-button>
       <el-button size="small" class="btn-saveAll" @click="save()">保存</el-button>
@@ -86,7 +98,7 @@ function save() {
 
 <style lang="scss" scoped>
 .el-row {
-  height: 5.5vh;
+  height: 5vh;
   align-items: center;
 }
 

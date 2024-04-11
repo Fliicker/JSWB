@@ -40,6 +40,7 @@ class DrawDao {
 
   async insertPointByUnitId(client, id, name, geojsonStr, style1, style2, style3) {
     //默认4326坐标系
+    console.log(geojsonStr)
     await client.query('insert into point (unit_id, name, geom, radius, color, stroke_width) values ($1, $2, ST_AsText(ST_GeomFromGeoJSON($3)), $4, $5, $6)', [id, name, geojsonStr, style1, style2, style3]);
   }
 

@@ -159,9 +159,27 @@ var currentFeature = drawData.find((item) => item.name === props.featureName);
 var geomType = currentFeature.type;
 
 //每种标注类型包含2-3个样式，用style1-3表示
-var style1 = ref(currentFeature.style1 == null ? 0 : currentFeature.style1);
-var style2 = ref(currentFeature.style2 == null ? 0 : currentFeature.style2);
-var style3 = ref(currentFeature.style3 == null ? 0 : currentFeature.style3);
+var style1 = ref(
+  currentFeature.style1 == null
+    ? styleConfig[geomTypeKeys[geomType]].style1.default
+    : currentFeature.style1
+);
+var style2 = ref(
+  currentFeature.style2 == null
+    ? styleConfig[geomTypeKeys[geomType]].style2.default
+    : currentFeature.style2
+);
+
+var style3;
+try {
+  style3 = ref(
+    currentFeature.style3 == null
+      ? styleConfig[geomTypeKeys[geomType]].style3.default
+      : currentFeature.style3
+  );
+} catch {
+  style3 = ref(0);
+}
 
 initDrawStyle();
 

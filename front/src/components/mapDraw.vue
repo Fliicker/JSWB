@@ -35,6 +35,7 @@
           </el-scrollbar>
         </div>
         <el-row justify="center" align="middle" class="button-group">
+          <el-button size="small" class="btn-locate" @click="locate()">定位</el-button>
           <el-popover placement="left" :width="250" trigger="click" :visible="popVisible">
             <template #reference>
               <el-button size="small" @click="popVisible = true" class="btn-add"
@@ -111,7 +112,7 @@
         />
         <!-- 通过key变化强制更新子组件 -->
       </div>
-      <el-row><span class="text">描述信息：</span></el-row>
+      <el-row><span class="text">描述：</span></el-row>
       <el-input
         v-model="currentFeature.description"
         :rows="3"
@@ -136,7 +137,7 @@ import {
   watch,
   computed,
   inject,
-  getCurrentInstance
+  getCurrentInstance,
 } from "vue";
 import * as turf from "@turf/helpers";
 import bbox from "@turf/bbox";
@@ -263,13 +264,14 @@ function locate() {
     [bound[0], bound[1]],
     [bound[2], bound[3]],
   ]).zoom;
+
   let center = map.cameraForBounds([
     [bound[0], bound[1]],
     [bound[2], bound[3]],
   ]).center;
 
   map.easeTo({
-    zoom: zoom - 1.3,
+    zoom: Math.min(17, zoom - 1.3), //不得高于17
     center: center,
     pitch: 0,
     bearing: 0,
@@ -503,20 +505,20 @@ function showVectorLayers() {
 }
 
 function updateVectorLayers() {
-  proxy.$axios
-    .get("/api/map/version", { responseType: "json" })
-    .then((res) => {
-      var mapVersion = res.data.data;
-      map
-        .getSource("vector-source")
-        // .setTiles([
-        //   "http://localhost:8080/geoserver/gwc/service/tms/1.0.0/jswbservice%3Awb_features@EPSG%3A900913@pbf/{z}/{x}/{y}.pbf?version=" +
-        //     mapVersion,
-        // ]);
-        .setTiles([
-          import.meta.env.VITE_APP_SERVER_URL + "/api/map/getMvt/{z}/{x}/{y}?version=" + mapVersion,
-        ]);
-    });
+  proxy.$axios.get("/api/map/version", { responseType: "json" }).then((res) => {
+    var mapVersion = res.data.data;
+    map
+      .getSource("vector-source")
+      // .setTiles([
+      //   "http://localhost:8080/geoserver/gwc/service/tms/1.0.0/jswbservice%3Awb_features@EPSG%3A900913@pbf/{z}/{x}/{y}.pbf?version=" +
+      //     mapVersion,
+      // ]);
+      .setTiles([
+        import.meta.env.VITE_APP_SERVER_URL +
+          "/api/map/getMvt/{z}/{x}/{y}?version=" +
+          mapVersion,
+      ]);
+  });
 }
 
 function editFeature(featureName) {
@@ -670,6 +672,14 @@ function changeStyle(newData) {
 
       .btn-add {
         width: 4vw;
+        height: 3.5vh;
+        font-size: calc(0.55vw + 0.55vh);
+        font-family: 思源黑体N;
+        // box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .btn-locate {
+        width: 2.5vw;
         height: 3.5vh;
         font-size: calc(0.55vw + 0.55vh);
         font-family: 思源黑体N;

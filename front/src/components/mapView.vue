@@ -56,7 +56,14 @@ import leftBar from "@/components/leftBar.vue";
 // import infoBox from "@/components/infoBox.vue";
 import mapDraw from "@/components/mapDraw.vue";
 import dataManagement from "@/components/dataManagement.vue";
-import { defineComponent, onMounted, ref, computed, provide, getCurrentInstance } from "vue";
+import {
+  defineComponent,
+  onMounted,
+  ref,
+  computed,
+  provide,
+  getCurrentInstance,
+} from "vue";
 import { FullScreen } from "@element-plus/icons-vue";
 //import { useStore } from "@/stores/index.js";
 
@@ -78,9 +85,9 @@ var map = null;
 var draw = null;
 
 const viewState = {
-  latitude: 28.740177,
+  latitude: 28.540177,
   longitude: 118.611821,
-  zoom: 13,
+  zoom: 9,
   pitch: 0,
   bearing: 0,
 };
@@ -91,7 +98,7 @@ const styleConfig = {
     style1: {
       name: "circle-radius",
       label: "大小",
-      default: 1,
+      default: 0,
       options: [
         { value: 5, label: "小" },
         { value: 8, label: "中" },
@@ -101,7 +108,7 @@ const styleConfig = {
     style2: {
       name: "circle-color",
       label: "颜色",
-      default: 0,
+      default: 2,
       options: [
         { value: "#636363", label: "灰色" },
         { value: "#F50000", label: "红色" },
@@ -115,7 +122,7 @@ const styleConfig = {
       default: 1,
       options: [
         { value: 0, label: "无" },
-        { value: 3, label: "有" },
+        { value: 2, label: "有" },
       ],
     },
   },
@@ -205,11 +212,9 @@ function clearCurrentUnit() {
 }
 
 function refreshData() {
-  proxy.$axios
-    .get("/api/units/info", { responseType: "json" })
-    .then((res) => {
-      data.value = res.data.data;
-    });
+  proxy.$axios.get("/api/units/info", { responseType: "json" }).then((res) => {
+    data.value = res.data.data;
+  });
 }
 
 //切换底图
@@ -344,33 +349,29 @@ onMounted(async () => {
   //map.addControl(new mapboxgl.FullscreenControl(), "top-left");
 
   map.on("load", async function () {
-    await proxy.$axios
-      .get("/api/units/info", { responseType: "json" })
-      .then((res) => {
-        data.value = res.data.data;
-        createVectorLayers();
-        // 创建定位图层，确定图层顺序
-        createLocateLayers();
+    await proxy.$axios.get("/api/units/info", { responseType: "json" }).then((res) => {
+      data.value = res.data.data;
+      createVectorLayers();
+      // 创建定位图层，确定图层顺序
+      createLocateLayers();
 
-        draw = new MapboxDraw({
-          displayControlsDefault: false,
-          //boxSelect: true,
-          // Select which mapbox-gl-draw control buttons to add to the map.
-          controls: {},
-          //defaultMode: "draw_line_string",
-        });
-        map.addControl(draw); //添加标绘图层须在创建定位图层之后，从而保证标绘图层在最上方
+      draw = new MapboxDraw({
+        displayControlsDefault: false,
+        //boxSelect: true,
+        // Select which mapbox-gl-draw control buttons to add to the map.
+        controls: {},
+        //defaultMode: "draw_line_string",
       });
+      map.addControl(draw); //添加标绘图层须在创建定位图层之后，从而保证标绘图层在最上方
+    });
   });
 
   async function createVectorLayers() {
     var mapVersion;
-    await proxy.$axios
-      .get("/api/map/version", { responseType: "json" })
-      .then((res) => {
-        mapVersion = res.data.data;
-        console.log(mapVersion);
-      });
+    await proxy.$axios.get("/api/map/version", { responseType: "json" }).then((res) => {
+      mapVersion = res.data.data;
+      console.log(mapVersion);
+    });
 
     map.addSource("vector-source", {
       type: "vector",
@@ -517,7 +518,7 @@ onMounted(async () => {
   height: 100%;
 
   :deep(.mapboxgl-ctrl-top-left) {
-    left: 19vw;
+    left: 23vw;
     top: 0;
   }
 
@@ -529,7 +530,7 @@ onMounted(async () => {
 
 #btn-fullExtent {
   position: absolute;
-  left: 19vw;
+  left: 23vw;
   top: 110px;
 }
 
@@ -546,7 +547,7 @@ onMounted(async () => {
 
 .basemap-selector {
   position: absolute;
-  left: 19vw;
+  left: 24vw;
   bottom: 2vh;
 }
 </style>

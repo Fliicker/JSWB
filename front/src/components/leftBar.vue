@@ -54,11 +54,11 @@
                         </el-row>
                         <el-row style="height: 0.5vh"></el-row>
                         <el-row class="unit-info" align="middle">
-                          <el-col :span="8">
+                          <el-col :span="12">
                             {{ item.type }}
                             <span v-show="!item.type">未知类型</span>
                           </el-col>
-                          <el-col :span="16">
+                          <el-col :span="12">
                             {{ item.age }}
                             <span v-show="!item.age">未知年代</span>
                           </el-col>
@@ -292,7 +292,7 @@ onMounted(() => {});
   /* 侧边栏样式 */
   .aside_main {
     position: relative;
-    width: 18vw;
+    width: 22vw;
     left: 0vw !important;
     transition: left 0.5s;
 
@@ -383,7 +383,7 @@ onMounted(() => {});
 
           .unit-name {
             font-family: 思源黑体M;
-            font-size: calc(0.65vw + 0.65vh);
+            font-size: calc(0.55vw + 0.55vh);
           }
 
           .unit-info {

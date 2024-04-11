@@ -43,7 +43,7 @@
           <el-col :span="5">文物编号字段</el-col>
           <el-col :span="5">
             <el-select
-              v-model="fieldMatch.id"
+              v-model="fieldMatch.survey3_id"
               class="m-2"
               size="small"
               placeholder="选择字段"
@@ -89,7 +89,7 @@
               <el-option v-for="field in uploadFields" :value="field"> </el-option>
             </el-select>
           </el-col>
-          <el-col :span="2" />
+          <!-- <el-col :span="2" />
           <el-col :span="5">负责人姓名字段</el-col>
           <el-col :span="5">
             <el-select
@@ -100,9 +100,9 @@
             >
               <el-option v-for="field in uploadFields" :value="field"> </el-option>
             </el-select>
-          </el-col>
+          </el-col> -->
         </el-row>
-        <el-row align="middle">
+        <!-- <el-row align="middle">
           <el-col :span="5">联系电话字段</el-col>
           <el-col :span="5">
             <el-select
@@ -115,7 +115,7 @@
             </el-select>
           </el-col>
           <el-col :span="2" />
-        </el-row>
+        </el-row> -->
         <el-row style="height: 1vh"></el-row>
         <el-row>
           <el-col :span="5" class="bold-text">导入选项：</el-col>
@@ -163,13 +163,13 @@ var uploadFields = null; // 上传数据字段
 
 // 字段匹配
 const fieldMatch = ref({
-  id: "",
+  survey3_id: "",
   name: "",
   type: "",
   age: "",
   address: "",
-  person: "",
-  tel: "",
+  // person: "",
+  // tel: "",
 });
 
 var reconstructedData = null; //字段匹配后的最终数据
