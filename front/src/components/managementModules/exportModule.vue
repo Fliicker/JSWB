@@ -102,9 +102,9 @@ function exportInfo() {
 async function exportFeature() {
   try {
     if (featureExportType.value == "type1") {
-      const point = await proxy.$axios.get("/api/units/features/export/geojson/point");
-      const line = await proxy.$axios.get("/api/units/features/export/geojson/line");
-      const polygon = await proxy.$axios.get("/api/units/features/export/geojson/polygon");
+      const point = await proxy.$axios.get("/units/features/export/geojson/point");
+      const line = await proxy.$axios.get("/units/features/export/geojson/line");
+      const polygon = await proxy.$axios.get("/units/features/export/geojson/polygon");
       var options1 = {
         //folder: "my_internal_shapes_folder",
         filename: "地图标绘_点",
@@ -149,7 +149,7 @@ async function exportFeature() {
       // document.body.appendChild(link);
       // link.click();
     } else if (featureExportType.value == "type2") {
-      const geojson = await proxy.$axios.get("/api/units/features/export/geojson");
+      const geojson = await proxy.$axios.get("/units/features/export/geojson");
       downloadJson(geojson.data, "地图标绘.geojson");
     }
   } catch (error) {
@@ -198,9 +198,8 @@ function downloadJson(jsondata, filename) {
     width: 5vw;
     height: 4vh;
     font-size: calc(0.6vw + 0.6vh);
-    background-color: rgb(81, 103, 101);
+    background-color: #758a99;
     color: white;
-    font-family: 思源黑体N;
     // box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
 

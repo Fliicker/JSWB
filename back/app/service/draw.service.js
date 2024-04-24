@@ -1,6 +1,9 @@
 const drawDao = require('../dao/draw.dao');
+const mapDao = require('../dao/map.dao');
 const pool = require('../db');
-const turf = require('@turf/helpers');
+//const turf = require('@turf/helpers');
+const turf = require('@turf/turf')
+
 const MapService = require('./map.service')
 
 class DrawService {
@@ -27,23 +30,23 @@ class DrawService {
 
       for (const record of records) {
         //style1-3对应标绘图层的几种样式
-        const { name, type, geometry, style1, style2, style3 } = record
+        const { name, type, geometry, style1, style2, style3, use_label, label } = record
         var geom = JSON.parse(geometry);
 
         switch (type) {
           case 0: {
             var geojsonStr = JSON.stringify({ "type": "Point", "coordinates": geom });
-            drawDao.insertPointByUnitId(client, id, name, geojsonStr, style1, style2, style3)
+            drawDao.insertPointByUnitId(client, id, name, geojsonStr, style1, style2, style3, use_label, label)
             break;
           }
           case 1: {
             var geojsonStr = JSON.stringify({ "type": "Linestring", "coordinates": geom });
-            drawDao.insertLineByUnitId(client, id, name, geojsonStr, style1, style2, style3)
+            drawDao.insertLineByUnitId(client, id, name, geojsonStr, style1, style2, style3, use_label, label)
             break;
           }
           case 2: {
             var geojsonStr = JSON.stringify({ "type": "Polygon", "coordinates": geom });
-            drawDao.insertPolygonByUnitId(client, id, name, geojsonStr, style1, style2)
+            drawDao.insertPolygonByUnitId(client, id, name, geojsonStr, style1, style2, use_label, label)
             break;
           }
           default:
@@ -71,7 +74,6 @@ class DrawService {
     }
   }
 
-
   async generateFeatureCollection(geomType) {
     let features = [];
     switch (geomType) {
@@ -81,7 +83,7 @@ class DrawService {
         features = queryResult.map(row => ({
           type: 'Feature',
           geometry: row.geometry,
-          properties: { unit_id: row.unit_id, name: row.name, radius: row.radius, color: row.color, stroke_width: row.stroke_width },
+          properties: { unit_id: row.unit_id, name: row.name, radius: row.radius, color: row.color, stroke_width: row.stroke_width, use_label: row.use_label, label: row.label },
         }));
         break;
       }
@@ -91,7 +93,7 @@ class DrawService {
         features = queryResult.map(row => ({
           type: 'Feature',
           geometry: row.geometry,
-          properties: { unit_id: row.unit_id, name: row.name, color: row.color, width: row.width, line_type: row.line_type },
+          properties: { unit_id: row.unit_id, name: row.name, color: row.color, width: row.width, line_type: row.line_type, use_label: row.use_label, label: row.label },
         }));
         break;
       }
@@ -101,7 +103,7 @@ class DrawService {
         features = queryResult.map(row => ({
           type: 'Feature',
           geometry: row.geometry,
-          properties: { unit_id: row.unit_id, name: row.name, color: row.color, opacity: row.opacity },
+          properties: { unit_id: row.unit_id, name: row.name, color: row.color, opacity: row.opacity, use_label: row.use_label, label: row.label },
         }));
         break;
       }
@@ -126,6 +128,54 @@ class DrawService {
     if (pointCollection == null || lineCollection == null || polygonCollection == null) return null;
     const geojson = turf.featureCollection([...pointCollection, ...lineCollection, ...polygonCollection]);
     return geojson;
+  }
+
+  // 获取中心点
+  async getCenterByUnitId(id) {
+    const features = await drawDao.getFeaturesByUnitId(id);
+    if (features.length == 0 || features == null) return null;
+
+    let collection = [];
+    for (var item of features) {
+      let geom = JSON.parse(item.geometry);
+      switch (item.type) {
+        case 0: {
+          var feature = turf.point(geom);
+          break;
+        }
+        case 1: {
+          var feature = turf.lineString(geom);
+          break;
+        }
+        case 2: {
+          var feature = turf.polygon(geom);
+          break;
+        }
+        default:
+          break;
+      }
+      collection.push(feature);
+    }
+    const geojson = turf.featureCollection(collection);
+    const center = turf.center(geojson).geometry.coordinates
+
+    return center;
+  }
+
+  // 生成测绘数据中心点geojson
+  async generateBuildingGeojson() {
+    const rows = await mapDao.getBuildingCenters()
+    if (rows == null) return null
+
+    const points = []
+    for (var row of rows) {
+      let { center_x, center_y, name } = row
+      let point = turf.point([center_x, center_y], { name: name })
+      points.push(point)
+    }
+    const collection = turf.featureCollection(points)
+
+    return collection;
   }
 }
 

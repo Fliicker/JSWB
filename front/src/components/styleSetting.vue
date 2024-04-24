@@ -328,12 +328,11 @@ function changeDrawStyle(geomType, key, value) {
 
 <style lang="scss" scoped>
 .el-row {
-  height: 6vh;
+  height: 5vh;
   align-items: center;
 }
 
 .text {
-  font-family: 思源黑体R;
   font-size: calc(0.6vw + 0.6vh);
 }
 </style>

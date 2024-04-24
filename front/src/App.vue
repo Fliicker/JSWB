@@ -23,4 +23,8 @@ export default defineComponent({
 
 <style>
 @import "assets/style/common.css"; /*注册全局样式*/
+
+.el-dialog__body {
+  padding: 0 !important;
+}
 </style>

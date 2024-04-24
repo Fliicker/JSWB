@@ -4,17 +4,25 @@ const path = require('path');
 
 class MapService {
   // 生成矢量瓦片
-  async getMvt(x, y, z) {
+  async getUnitMvt(x, y, z) {
     let [xmin, ymin] = this.xyz2lonlat(x, y, z)
     let [xmax, ymax] = this.xyz2lonlat(x + 1, y + 1, z)
 
-    const rows = await mapDao.getMVT(xmin, ymin, xmax, ymax)
+    const rows = await mapDao.getUnitMVT(xmin, ymin, xmax, ymax)
     //const rows = await mapDao.getMVT2(x, y, z)
 
     if (rows == null) return null
 
     return rows[0].mvt
+  }
 
+  async getBuildingMvt(x, y, z) {
+    let [xmin, ymin] = this.xyz2lonlat(x, y, z)
+    let [xmax, ymax] = this.xyz2lonlat(x + 1, y + 1, z)
+
+    const rows = await mapDao.getBuildingMVT(xmin, ymin, xmax, ymax)
+    if (rows == null) return null
+    return rows[0].mvt
   }
 
   xyz2lonlat(x, y, z) {

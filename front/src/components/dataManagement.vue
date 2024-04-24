@@ -71,7 +71,6 @@ const activeModule = ref("add");
   }
 
   .tabs {
-    font-family: 思源黑体R;
     font-size: calc(0.65vw + 0.65vh);
     line-height: 5vh;
     color: #414141;

@@ -1,10 +1,16 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken')
+const { expressjwt: expressJWT } = require('express-jwt')
+const jwtConfig = require('./config/jwtConfig')
+const fileConfig = require('./config/fileConfig')
 
 const unitController = require('./app/controller/unit.controller');
 const drawController = require('./app/controller/draw.controller');
 const mapController = require('./app/controller/map.controller');
+const buildingController = require('./app/controller/building.controller');
+const UserController = require('./app/controller/user.controller')
 
 const app = express();
 
@@ -15,43 +21,79 @@ var corsOptions = {
 app.use(cors(corsOptions));   //跨域设置
 app.use(bodyParser.json());
 
-// // 文物属性接口
-// app.get("/unitList", unitController.getUnitList);
-// app.get("/getInfoByUnitId/:id", unitController.getUnitById);
-// app.post("/addUnits", unitController.insertUnits);
-// app.delete("/deleteUnitById/:id", unitController.deleteUnitById);
-// app.post('/updateInfo/:id', unitController.updateUnitById); //接收某一文物的属性记录，更新units数据库
+// 配置jwt中间件
+app.use(expressJWT({ secret: jwtConfig.jwtSecretKey, algorithms: ["HS256"] }).unless({ path: [/^\/api/] })) //除了/api开头的请求都需验证token
 
-// // 文物标绘接口
-// app.get("/getFeaturesByUnitId2/:id", drawController.getFeaturesByUnitId);
-// app.post('/updateFeatures2/:id', drawController.updateFeaturesByUnitId);  //接收一组标绘数据，更新空间数据库和features数据库
-// app.get('/export/geojson', drawController.exportGeojson);
-// app.get('/export/geojson/point', drawController.exportPoint);
-// app.get('/export/geojson/line', drawController.exportLine);
-// app.get('/export/geojson/polygon', drawController.exportPolygon);
+// 错误处理中间件
+app.use(function (err, req, res, next) {
+  if (err.name === 'UnauthorizedError' && err.message === 'invalid token') {
+    res.status(401).send('无效的token')
+  }
+  // 不加此段会导致无headers时请求无响应
+  res.status(500).send({
+    status: 500,
+    message: '未知的错误',
+  })
+})
 
-// // 地图接口
-// app.get('/mapVersion', mapController.getMapVersion);
+// 解密中间件
+app.use((req, res, next) => {
+  const path = req.path.toLowerCase(); // 获取请求路径并转换为小写
+  // 如果请求路径在需要验证的范围内，则执行 JWT 解密和验证逻辑
+  if (!path.startsWith('/api')) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    jwt.verify(token, jwtConfig.jwtSecretKey, (err, user) => {
+      if (err) {
+        return res.status(403).send({
+          status: 403,
+          message: '验证身份失败',
+        });
+      }
+      req.user = user; // 将用户信息存储在请求对象中
+      next();
+    });
+  } else {
+    next()
+  }
+});
 
 // 文物属性接口
 app.get("/api/units/info", unitController.getUnitList);
 app.get("/api/units/info/:id", unitController.getUnitById);
-app.post("/api/units/info", unitController.insertUnits);
-app.delete("/api/units/info/:id", unitController.deleteUnitById);
-app.put('/api/units/info/:id', unitController.updateUnitById); //接收某一文物的属性记录，更新units数据库
+app.post("/units/info", unitController.insertAUnit)
+app.post("/units/info/batch", unitController.insertUnits);
+app.delete("/units/info/:id", unitController.deleteUnitById);
+app.put('/units/info/:id', unitController.updateUnitById); //接收某一文物的属性记录，更新units数据库
+app.get('/units/resources/pdf/:id', unitController.exportPDFById);     //下载文物三普pdf
+app.get('/api/units/resources/images/list/:id', unitController.getImgListById);    //获取三普预览图路径列表
+app.use('/api/units/resources/images', express.static(fileConfig.imgPath)); //静态图片资源托管
 
 // 文物标绘接口
 app.get("/api/units/features/:id", drawController.getFeaturesByUnitId);
-app.put('/api/units/features/:id', drawController.updateFeaturesByUnitId);  //接收一组标绘数据，更新空间数据库和features数据库
-app.get('/api/units/features/export/geojson', drawController.exportGeojson);
-app.get('/api/units/features/export/geojson/point', drawController.exportPoint);
-app.get('/api/units/features/export/geojson/line', drawController.exportLine);
-app.get('/api/units/features/export/geojson/polygon', drawController.exportPolygon);
+app.put('/units/features/:id', drawController.updateFeaturesByUnitId);  //接收一组标绘数据，更新空间数据库和features数据库
+app.get('/units/features/export/geojson', drawController.exportGeojson);
+app.get('/units/features/export/geojson/point', drawController.exportPoint);
+app.get('/units/features/export/geojson/line', drawController.exportLine);
+app.get('/units/features/export/geojson/polygon', drawController.exportPolygon);
+app.get('/api/units/features/center/:id', drawController.getCenterByUnitId);
+
+// 测绘数据接口
+app.get('/api/buildings/geojson/centers', drawController.exportBuildingCenters);    //导出测绘数据中心点
+app.get('/api/buildings/list', buildingController.getBuildingList);
+app.get('/api/buildings/:id', buildingController.getBuildingById);
+app.get('/buildings/export/geojson/:id', buildingController.exportGeojsonById)   //不能用post请求，两种请求分别用于什么场合？
 
 // 地图接口
-app.get('/api/map/getMvt/:z/:x/:y', mapController.getMvt);
+app.get('/api/map/mvt/units/:z/:x/:y', mapController.getUnitMvt);
+app.get('/api/map/mvt/buildings/:z/:x/:y', mapController.getBuildingMvt);
 app.get('/api/map/version', mapController.getMapVersion);
 
+// 用户接口
+app.post('/api/user/login', UserController.getUser);
+app.post('/api/user/register', UserController.addUser);
+app.get('/user/actions/', UserController.getUserActions)
+app.get('/user/actions/:id', UserController.getUserActionsById)
 
 
 /////

@@ -282,7 +282,7 @@ function importData() {
   });
 
   proxy.$axios
-    .post("/api/units/info", reconstructedData)
+    .post("/units/info/batch", reconstructedData)
     .then((res) => {
       console.log(res.data);
       ElNotification({
@@ -334,9 +334,8 @@ function importData() {
     width: 5vw;
     height: 4vh;
     font-size: calc(0.6vw + 0.6vh);
-    background-color: rgb(197, 224, 180);
+    // background-color: rgb(197, 224, 180);
     // color: rgb(89, 89, 89);
-    font-family: 思源黑体N;
     // box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
 
@@ -357,9 +356,8 @@ function importData() {
     width: 5vw;
     height: 4vh;
     font-size: calc(0.6vw + 0.6vh);
-    background-color: rgb(81, 103, 101);
+    background-color: #758a99;
     color: white;
-    font-family: 思源黑体N;
     // box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
 }

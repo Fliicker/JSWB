@@ -18,11 +18,11 @@ class UnitDao {
   }
 
   async getUnitList() {
-    return this.query('select * from units', []);
+    return this.query('select * from units where is_deleted = false', []);
   }
 
   async getUnitById(id) {
-    return this.query('select * from units where id = $1', [id]);
+    return this.query('select * from units where id = $1 and is_deleted = false', [id]);
   }
 
   async insertUnits(data) {
@@ -61,14 +61,24 @@ class UnitDao {
     }
   }
 
-  async updateUnitById(id, record) {
+  async insertAUnit(record) {
     const { survey3_id, name, type, age, address, person, tel } = record;
-    return this.query('UPDATE units SET type = $1, age = $2, address = $3, person = $4, tel = $5, name = $6, survey3_id = $7 WHERE id = $8 returning *', [type, age, address, person, tel, name, survey3_id ,id]);
+    const insertSql = 'insert into units (survey3_id, name, type, age, address, person, tel) values ($1, $2, $3, $4, $5, $6, $7) returning *';
+    return this.query(insertSql, [survey3_id, name, type, age, address, person, tel]);
   }
 
+  async updateUnitById(id, record) {
+    const { survey3_id, name, type, age, address, person, tel } = record;
+    return this.query('UPDATE units SET type = $1, age = $2, address = $3, person = $4, tel = $5, name = $6, survey3_id = $7 WHERE id = $8 and is_deleted = false returning *', [type, age, address, person, tel, name, survey3_id, id]);
+  }
+
+  ///
+  ////// 软删除
+  ///
   async deleteUnitById(client, id) {
     //return this.query('delete from units where id = $1 returning *', [id]);
-    await client.query('delete from units where id = $1 returning *', [id]);
+    //await client.query('delete from units where id = $1 and is_deleted = false returning *', [id]);
+    await client.query('UPDATE units SET is_deleted = true where id = $1 returning *', [id]);
   }
 }
 

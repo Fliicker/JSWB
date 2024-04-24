@@ -72,7 +72,7 @@ async function addARecord() {
   await formRef.value.validate((valid, fields) => {
     if (valid) {
       proxy.$axios
-        .post("/api/units/info", [newdata.value])
+        .post("/units/info", newdata.value)
         .then((res) => {
           console.log(res.data);
           console.log("submit!");
@@ -110,7 +110,6 @@ async function addARecord() {
   }
 
   .text {
-    font-family: 思源黑体R;
     font-size: calc(0.65vw + 0.65vh);
   }
 }
@@ -124,9 +123,8 @@ async function addARecord() {
     width: 5vw;
     height: 4vh;
     font-size: calc(0.6vw + 0.6vh);
-    background-color: rgb(81, 103, 101);
+    background-color: #758a99;
     color: white;
-    font-family: 思源黑体N;
     // box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
 }

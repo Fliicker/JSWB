@@ -1,15 +1,20 @@
 <template>
   <el-container id="layer-container" class="map-overlay-right">
-    <el-main>
-      <el-row justify="center"
-        ><span id="title">&nbsp;&nbsp; {{ unitName }}</span></el-row
-      >
-      <el-row><span class="subtitle">&nbsp;&nbsp; 标绘管理</span></el-row>
-      <div class="draw-manage">
-        <div id="draw-layers">
-          <el-empty v-if="drawData.length == 0" :image-size="0.1" description="无标绘" />
-          <el-scrollbar>
-            <!-- <el-table :data="drawData" style="width: 100%">
+    <el-scrollbar>
+      <el-main>
+        <el-row justify="center"
+          ><span id="title">&nbsp;&nbsp; {{ unitName }}</span></el-row
+        >
+        <el-row><span class="subtitle">&nbsp;&nbsp; 标绘管理</span></el-row>
+        <div class="draw-manage">
+          <div id="draw-layers">
+            <el-empty
+              v-if="drawData.length == 0"
+              :image-size="0.1"
+              description="无标绘"
+            />
+            <el-scrollbar>
+              <!-- <el-table :data="drawData" style="width: 100%">
             <el-table-column prop="name" label="标绘名称">
               <template #default="scope">
                 <div>
@@ -18,113 +23,181 @@
               </template>
             </el-table-column>
           </el-table> -->
-            <el-collapse
-              class="collapse box-overlay"
-              v-model="currentFeatureName"
-              accordion
-              v-show="drawData.length != 0"
-            >
-              <el-collapse-item v-for="(item, index) in drawData" :name="item.name">
-                <template #title>
-                  {{ item.name }}
-                </template>
-                <!-- /{{ item.description ? item.description : "暂无描述" }} -->
-                <el-row> 标绘类型：{{ geomTypes[item.type] }} </el-row>
-              </el-collapse-item>
-            </el-collapse>
-          </el-scrollbar>
-        </div>
-        <el-row justify="center" align="middle" class="button-group">
-          <el-button size="small" class="btn-locate" @click="locate()">定位</el-button>
-          <el-popover placement="left" :width="250" trigger="click" :visible="popVisible">
-            <template #reference>
-              <el-button size="small" @click="popVisible = true" class="btn-add"
-                >添加标绘</el-button
+              <el-collapse
+                class="collapse box-overlay"
+                v-model="currentFeatureName"
+                accordion
+                v-show="drawData.length != 0"
               >
-            </template>
-            <el-row align="middle" style="height: 30px">
-              <el-col :span="8" style="font-size: 14px">标绘类型：</el-col>
-              <el-col :span="16">
-                <el-select v-model="drawTypeAdd" class="m-2" size="small">
-                  <el-option
-                    v-for="item in drawTypeOptions"
-                    :key="item.id"
-                    :label="item.label"
-                    :value="item.value"
+                <el-collapse-item
+                  v-for="(item, index) in drawData"
+                  :name="item.name"
+                  :disabled="locked"
+                >
+                  <template #title>
+                    {{ item.name }}
+                  </template>
+                  <!-- /{{ item.description ? item.description : "暂无描述" }} -->
+                  <el-row> 标绘类型：{{ geomTypes[item.type] }} </el-row>
+                </el-collapse-item>
+              </el-collapse>
+            </el-scrollbar>
+          </div>
+          <el-row justify="center" align="middle" class="button-group">
+            <div v-if="!locked">
+              <el-button size="small" class="btn-locate" @click="locate()"
+                >定位</el-button
+              >
+              <el-popover
+                placement="left"
+                :width="250"
+                trigger="click"
+                :visible="popVisible"
+              >
+                <template #reference>
+                  <el-button size="small" @click="popVisible = true" class="btn-add"
+                    >添加标绘</el-button
                   >
-                  </el-option>
-                </el-select>
-              </el-col>
-            </el-row>
-            <el-row align="middle" style="height: 30px">
-              <el-col :span="8" style="font-size: 14px">标绘名称：</el-col>
-              <el-col :span="16">
-                <el-input v-model="drawNameAdd" placeholder="输入标绘名称" />
-              </el-col>
-            </el-row>
-            <el-row align="middle">
-              <el-col :span="8" style="font-size: 14px">描述：</el-col>
-              <el-col :span="16">
-                <el-input
-                  v-model="descriptionAdd"
-                  :rows="3"
-                  type="textarea"
-                  placeholder="输入描述信息"
-                />
-              </el-col>
-            </el-row>
-            <el-row justify="center" style="padding-top: 2vh">
-              <el-button size="small" color="rgb(81, 103, 101)" @click="addDrawLayer()">
-                确定
-              </el-button>
-              <el-button size="small" @click="popVisible = false"> 取消 </el-button>
-            </el-row>
-          </el-popover>
-          <el-button size="small" class="btn-saveAll" @click="saveAll()"
-            >全部保存</el-button
-          >
-        </el-row>
-      </div>
-      <el-row><span class="subtitle">&nbsp;&nbsp; 属性管理</span></el-row>
-      <div class="property-manage box-area"><infoSetting :unitId="unitId" /></div>
-    </el-main>
+                </template>
+                <el-row align="middle" style="height: 30px">
+                  <el-col :span="8" style="font-size: 14px">标绘类型：</el-col>
+                  <el-col :span="16">
+                    <el-select v-model="drawTypeAdd" class="m-2" size="small">
+                      <el-option
+                        v-for="item in drawTypeOptions"
+                        :key="item.id"
+                        :label="item.label"
+                        :value="item.value"
+                      >
+                      </el-option>
+                    </el-select>
+                  </el-col>
+                </el-row>
+                <el-row align="middle" style="height: 30px">
+                  <el-col :span="8" style="font-size: 14px">标绘名称：</el-col>
+                  <el-col :span="16">
+                    <el-input v-model="drawNameAdd" placeholder="输入标绘名称" />
+                  </el-col>
+                </el-row>
+                <el-row align="middle">
+                  <el-col :span="8" style="font-size: 14px">描述：</el-col>
+                  <el-col :span="16">
+                    <el-input
+                      v-model="descriptionAdd"
+                      :rows="3"
+                      type="textarea"
+                      placeholder="输入描述信息"
+                    />
+                  </el-col>
+                </el-row>
+                <el-row justify="center" style="padding-top: 2vh">
+                  <el-button
+                    size="small"
+                    color="#758a99"
+                    style="color:#fff"
+                    @click="addDrawLayer()"
+                  >
+                    确定
+                  </el-button>
+                  <el-button size="small" @click="popVisible = false"> 取消 </el-button>
+                </el-row>
+              </el-popover>
+              <el-button size="small" class="btn-saveAll" @click="saveAll()"
+                >全部保存</el-button
+              >
+            </div>
+            <div v-if="locked">
+              <el-button size="small" @click="unlock()">进入编辑</el-button>
+            </div>
+          </el-row>
+        </div>
+        <el-row><span class="subtitle">&nbsp;&nbsp; 属性管理</span></el-row>
+        <div class="property-manage box-area"><infoSetting :unitId="unitId" /></div>
+        <el-row><span class="subtitle">&nbsp;&nbsp; 三普资料</span></el-row>
+        <div class="file-manage">
+          <el-row align="middle">
+            <el-col :span="10"><span class="text">PDF文件：</span></el-col>
+            <el-col :span="14">
+              <el-button class="btn-pdf" @click="previewPDF()">预览</el-button>
+              <el-button class="btn-pdf" @click="downloadPDF()">下载</el-button>
+            </el-col>
+          </el-row>
+        </div>
+      </el-main>
+    </el-scrollbar>
   </el-container>
   <el-container id="style-container" class="map-overlay-right" v-if="currentFeatureName">
-    <el-main>
-      <el-row justify="center">
-        <span id="style-title">{{ currentFeatureName }} </span>
-      </el-row>
-      <!-- <el-row justify="center" align="middle"
+    <el-scrollbar>
+      <el-main>
+        <el-row justify="center">
+          <span id="style-title">{{ currentFeatureName }} </span>
+        </el-row>
+        <!-- <el-row justify="center" align="middle"
         ><div class="draw-type">{{ geomTypes[currentGeomType] }}</div></el-row
       > -->
-      <el-row justify="center" align="middle">
-        <el-button class="btn-draw" @click="startDraw()">绘制 / 重新绘制</el-button>
-      </el-row>
-      <el-row><span class="subtitle">&nbsp;&nbsp; 样式设置</span></el-row>
-      <div id="style-setting" class="box-area">
-        <styleSetting
-          :unitId="unitId"
-          :drawData="drawData"
-          :map="map"
-          :featureName="currentFeatureName"
-          :key="currentFeatureName"
-          @styleChangeEvent="changeStyle"
+        <el-row justify="center" align="middle">
+          <el-button class="btn-draw" @click="startDraw()">绘制 / 重新绘制</el-button>
+        </el-row>
+        <el-row><span class="subtitle">&nbsp;&nbsp; 样式设置</span></el-row>
+        <div id="style-setting" class="box-area">
+          <styleSetting
+            :unitId="unitId"
+            :drawData="drawData"
+            :map="map"
+            :featureName="currentFeatureName"
+            :key="currentFeatureName"
+            @styleChangeEvent="changeStyle"
+          />
+          <!-- 通过key变化强制更新子组件 -->
+        </div>
+        <el-row><span class="subtitle">&nbsp;&nbsp; 标注设置</span></el-row>
+        <div id="label-setting" class="box-area">
+          <el-row align="middle" style="height: 5vh">
+            <el-col :span="12" class="text"> 显示标注： </el-col>
+            <el-col :span="12">
+              <el-switch v-model="currentFeature.use_label" size="small" />
+            </el-col>
+          </el-row>
+          <el-row align="middle" style="height: 5vh">
+            <el-col :span="12" class="text"> 标注文本： </el-col>
+          </el-row>
+          <el-row>
+            <el-input
+              v-model="currentFeature.label"
+              :rows="2"
+              type="textarea"
+              placeholder="无"
+          /></el-row>
+        </div>
+        <el-row><span class="subtitle">&nbsp;&nbsp; 描述</span></el-row>
+        <el-input
+          v-model="currentFeature.description"
+          :rows="4"
+          type="textarea"
+          placeholder="输入描述信息"
         />
-        <!-- 通过key变化强制更新子组件 -->
-      </div>
-      <el-row><span class="text">描述：</span></el-row>
-      <el-input
-        v-model="currentFeature.description"
-        :rows="3"
-        type="textarea"
-        placeholder="输入描述信息"
-        style="margin: 1vh 0"
-      />
-      <el-row justify="center" align="middle">
-        <el-button class="btn-delete" @click="deleteDrawLayer()">删除标绘</el-button>
-      </el-row>
-    </el-main>
+        <el-row justify="center" align="middle">
+          <el-button class="btn-delete" @click="deleteDrawLayer()">删除标绘</el-button>
+        </el-row>
+      </el-main>
+    </el-scrollbar>
   </el-container>
+  <el-dialog title="PDF预览" v-model="pdfDialogVisible" width="45vw" center align-center>
+    <el-carousel trigger="click" :autoplay="false" height="85vh" :loop="false">
+      <el-carousel-item v-for="imgURL in imgURLs.value" :key="imgURL">
+        <el-scrollbar>
+          <img
+            :src="'http://localhost:8181/api/units/resources/images' + imgURL"
+            alt="预览图片"
+            style="width: 100%; height: 100%"
+          />
+        </el-scrollbar>
+        <!-- <el-image
+            :src="'http://localhost:8181/api/units/resources/images' + imgURL" fit='cover'
+          /> -->
+      </el-carousel-item>
+    </el-carousel>
+  </el-dialog>
 </template>
 
 <script>
@@ -143,7 +216,7 @@ import * as turf from "@turf/helpers";
 import bbox from "@turf/bbox";
 import styleSetting from "@/components/styleSetting.vue";
 import infoSetting from "@/components/infoSetting.vue";
-//import { useStore } from "@/stores/index.js";
+import { useUserStore } from "@/stores/index.js";
 //import { ElLoading } from "element-plus";       //采用了自动引入, 再次引入会出问题！
 
 export default defineComponent({
@@ -158,6 +231,7 @@ export default defineComponent({
 
 <script setup>
 const { proxy } = getCurrentInstance();
+const userStore = useUserStore();
 //const drawTypeCollection = { 0: "点标绘", 1: "线标绘", 2: "面标绘" };
 const loadingOptions = {
   lock: true,
@@ -176,6 +250,7 @@ const map = props.map;
 const draw = props.draw;
 
 const drawData = ref([]);
+var tempData = []; //暂存初始数据，供判断对象是否更改
 const currentFeature = ref(null);
 const currentFeatureName = ref("");
 const currentGeomType = ref(0);
@@ -186,8 +261,17 @@ const drawNameAdd = ref("");
 const descriptionAdd = ref("");
 
 const popVisible = ref(false);
-
+const locked = ref(true); //锁定状态，登录以解锁
 const styleConfig = inject("styleConfig");
+
+const pdfDialogVisible = ref(false);
+const pdfUrl = ref("");
+
+const imgURLs = [
+  "http://localhost:8181/api/images/330881-0001-0.png",
+  "http://localhost:8181/api/images/330881-0001-1.png",
+  "http://localhost:8181/api/images/330881-0001-2.png",
+];
 
 onMounted(() => {
   const loadingInstance = ElLoading.service(loadingOptions);
@@ -198,21 +282,22 @@ onMounted(() => {
     })
     .then((res) => {
       drawData.value = res.data.data;
+      tempData = JSON.parse(JSON.stringify(drawData.value));
       loadingInstance.close();
       locate();
       createDrawLayers(); //文保单位对应的要素集合进入编辑状态
       hideVectorLayers(); //对应矢量切片隐藏
-    })
-    .catch((error) => {
-      loadingInstance.close();
-      console.error("API Error:", error.response.data);
-      ElNotification({
-        title: "失败",
-        message: "获取标绘信息失败",
-        position: "bottom-right",
-        type: "error",
-      });
     });
+  // .catch((error) => {
+  //   loadingInstance.close();
+  //   console.error("API Error:", error.response);
+  //   ElNotification({
+  //     title: "失败",
+  //     message: "获取标绘信息失败",
+  //     position: "bottom-right",
+  //     type: "error",
+  //   });
+  // });
 });
 
 watch(currentFeatureName, (newVal, oldVal) => {
@@ -226,8 +311,20 @@ watch(currentFeatureName, (newVal, oldVal) => {
   }
 });
 
+function deepEqual(obj1, obj2) {
+  if (obj1 === obj2) return true;
+  if (typeof obj1 !== "object" || typeof obj2 !== "object") return false;
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+  if (keys1.length !== keys2.length) return false;
+  for (let key of keys1) {
+    if (!deepEqual(obj1[key], obj2[key])) return false;
+  }
+  return true;
+}
+
 onUnmounted(() => {
-  saveAll(); // 可检测是否进行过图形操作
+  saveAll(); // TODO:可检测是否进行过图形操作
   removeDrawLayers();
   showVectorLayers();
 });
@@ -515,7 +612,7 @@ function updateVectorLayers() {
       // ]);
       .setTiles([
         import.meta.env.VITE_APP_SERVER_URL +
-          "/api/map/getMvt/{z}/{x}/{y}?version=" +
+          "/api/map/mvt/units/{z}/{x}/{y}?version=" +
           mapVersion,
       ]);
   });
@@ -571,13 +668,21 @@ function startDraw() {
 function saveAll() {
   uneditFeature(currentFeatureName.value);
   currentFeatureName.value = "";
+
+  if (!userStore.isLoggedIn) return;
+
+  // 检测是否发生数据变化，若未变化则不保存
+  if (deepEqual(drawData.value, tempData)) return;    
+
   const loadingInstance = ElLoading.service(loadingOptions);
   document.body.classList.remove("el-loading-parent--relative");
+
   proxy.$axios
-    .put(`/api/units/features/${props.unitId}`, drawData.value)
+    .put(`/units/features/${props.unitId}`, drawData.value)
     .then((res) => {
       updateVectorLayers();
       loadingInstance.close();
+      tempData = drawData.value
     })
     .catch((error) => {
       loadingInstance.close();
@@ -594,11 +699,74 @@ function saveAll() {
 function changeStyle(newData) {
   drawData.value = newData;
 }
+
+function previewPDF() {
+  if (userStore.isLoggedIn) {
+    proxy.$axios
+      .get(`/api/units/resources/images/list/${props.unitId}`)
+      .then((res) => {
+        imgURLs.value = res.data.data;
+        pdfDialogVisible.value = true;
+      })
+      .catch((error) => {
+        console.error("Failed to fetch images:", error);
+        ElNotification({
+          title: "失败",
+          message: "无法预览该文件",
+          position: "bottom-right",
+          type: "error",
+        });
+      });
+  } else {
+    ElMessageBox.alert("您暂无预览权限，请在登录后操作。", "提示", {
+      confirmButtonText: "确定",
+    });
+  }
+}
+
+function downloadPDF() {
+  if (userStore.isLoggedIn) {
+    proxy.$axios
+      .get(`/units/resources/pdf/${props.unitId}`, { responseType: "blob" })
+      .then((res) => {
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${props.unitName}.pdf`); // 设置下载文件的默认名称
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch((error) => {
+        console.error("API Error:", error.response);
+        ElNotification({
+          title: "失败",
+          message: "下载失败",
+          position: "bottom-right",
+          type: "error",
+        });
+      });
+  } else {
+    ElMessageBox.alert("您暂无下载权限，请在登录后操作。", "提示", {
+      confirmButtonText: "确定",
+    });
+  }
+}
+
+function unlock() {
+  if (userStore.isLoggedIn) {
+    locked.value = false;
+  } else {
+    ElMessageBox.alert("您暂无编辑权限，请在登录后操作。", "提示", {
+      confirmButtonText: "确定",
+    });
+  }
+}
 </script>
 
 <style lang="scss" scoped>
 .subtitle {
-  margin: 1vh 0;
+  margin: 2vh 0;
   font-family: 思源黑体Bold;
   font-size: calc(0.75vw + 0.75vh);
   color: #414141;
@@ -622,6 +790,11 @@ function changeStyle(newData) {
 .box-area {
   border-radius: 5px;
   border: 1px solid #cacaca;
+  padding: 0.5vh 0.5vw;
+}
+
+.text {
+  font-size: calc(0.6vw + 0.6vh);
 }
 
 #layer-container {
@@ -640,7 +813,7 @@ function changeStyle(newData) {
 
   .draw-manage {
     position: relative;
-    height: 34vh;
+    height: 40vh;
 
     #draw-layers {
       position: relative;
@@ -674,7 +847,6 @@ function changeStyle(newData) {
         width: 4vw;
         height: 3.5vh;
         font-size: calc(0.55vw + 0.55vh);
-        font-family: 思源黑体N;
         // box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
       }
 
@@ -682,7 +854,6 @@ function changeStyle(newData) {
         width: 2.5vw;
         height: 3.5vh;
         font-size: calc(0.55vw + 0.55vh);
-        font-family: 思源黑体N;
         // box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
       }
 
@@ -690,9 +861,9 @@ function changeStyle(newData) {
         width: 4vw;
         height: 3.5vh;
         font-size: calc(0.55vw + 0.55vh);
-        background-color: rgb(197, 224, 180);
+        background-color: #758a99;
+        color: #fff;
         // color: rgb(89, 89, 89);
-        font-family: 思源黑体N;
         // box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
       }
     }
@@ -700,8 +871,18 @@ function changeStyle(newData) {
 
   .property-manage {
     position: relative;
-    height: 32vh;
-    padding: 1.5vh 1vw;
+    //height: 36vh;
+  }
+
+  .file-manage {
+    padding-left: 0.5vw;
+    padding-bottom: 2vh;
+
+    .btn-pdf {
+      width: 2.7vw;
+      height: 3.5vh;
+      font-size: calc(0.55vw + 0.55vh);
+    }
   }
 }
 
@@ -723,7 +904,6 @@ function changeStyle(newData) {
     text-align: center;
     background-color: #92c3b8;
     color: white;
-    font-family: 思源黑体N;
     font-size: calc(0.65vw + 0.65vh);
     // box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     width: 50%;
@@ -733,29 +913,25 @@ function changeStyle(newData) {
 
   #style-setting {
     // box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.2);
-    padding: 1vh 1vw;
-    height: 40%;
+    height: 21%;
   }
 
-  .text {
-    font-family: 思源黑体R;
-    font-size: calc(0.65vw + 0.65vh);
-    margin-top: 3vh;
+  #label-setting {
+    // box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.2);
+    height: 21%;
   }
 
   .btn-draw {
     font-size: calc(0.6vw + 0.6vh);
-    font-family: 思源黑体N;
     margin: 1vh 0;
     // box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
 
   .btn-delete {
-    margin: 3vh 0;
-    padding: 2vh 1vw;
-    font-size: calc(0.65vw + 0.65vh);
-    background-color: #ee5841;
-    font-family: 思源黑体N;
+    margin: 2.5vh 0;
+    padding: 1vh 1vw;
+    font-size: calc(0.6vw + 0.6vh);
+    background-color: #eacd76;
     color: #fff;
     // box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }

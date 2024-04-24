@@ -2,6 +2,12 @@ const unitDao = require('../dao/unit.dao');
 const drawDao = require('../dao/draw.dao');
 const pool = require('../db');
 const MapService = require('./map.service')
+const fileConfig = require('../../config/fileConfig')
+const fs = require('fs')
+const libre = require('libreoffice-convert');
+
+const PDFDocument = require('pdfkit');
+const path = require('path');
 
 class UnitService {
   async getUnitList() {
@@ -16,23 +22,25 @@ class UnitService {
     return unitDao.insertUnits(data);
   }
 
+  async insertAUnit(record) {
+    return unitDao.insertAUnit(record);
+  }
+
   async deleteUnitById(id) {
     let client;
     try {
       client = await pool.connect();
       await client.query('BEGIN');
 
-      // 删除指定id所有标绘
-      await drawDao.deleteFeaturesByUnitId(client, id);
-      await drawDao.deleteVectorsByUnitId(client, id);
+      // // 删除指定id所有标绘
+      // await drawDao.deleteFeaturesByUnitId(client, id);
+      // await drawDao.deleteVectorsByUnitId(client, id);
 
       // 删除文物信息
       await unitDao.deleteUnitById(client, id);
 
       await client.query('COMMIT');
 
-      // MapService.clearCache('D:/WebGIS/GeoServer/data_dir/gwc/jswbservice_wb_features');
-      // console.log('已清空缓存!');
       MapService.updateConfig()
 
       return null;
@@ -51,6 +59,37 @@ class UnitService {
 
   async updateUnitById(id, record) {
     return unitDao.updateUnitById(id, record);
+  }
+
+  async getPDFPathById(id) {
+    const results = await unitDao.getUnitById(id);
+    if (results == null || results.length == 0) return null;
+
+    const pdfPath = results[0].file_path;
+    if (pdfPath == null) return null;
+    const pdfDir = fileConfig.pdfPath;
+    const pdfPath2 = path.join(pdfDir, pdfPath);
+
+    return pdfPath2
+  }
+
+  async getImgListById(id) {
+    const records = await unitDao.getUnitById(id);
+    if (records == null || records.length == 0) return null;
+
+    const survey3Id = records[0].survey3_id;
+    const imgDir = fileConfig.imgPath;
+    const imgDir2 = path.join(imgDir, survey3Id);
+
+    try {
+      const data = fs.readFileSync(path.join(imgDir2, `${survey3Id}-list.txt`), 'utf8');
+      const lines = data.trim().split('\n').map(line => line.trim().replace(/\r$/, ''));
+      const paths = lines.map(line => `/${survey3Id}/${line}`);
+      return paths;
+    } catch (err) {
+      console.error('读取文件时出错：', err);
+      return null;
+    }
   }
 }
 

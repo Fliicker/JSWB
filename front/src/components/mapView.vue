@@ -8,6 +8,7 @@
     @refreshData="refreshData"
     @changeCurrentUnit="changeCurrentUnit"
     @clearCurrentUnit="clearCurrentUnit"
+    @showBuilding="showBuilding"
   />
   <!-- <infoBox /> -->
   <mapDraw
@@ -38,12 +39,53 @@
     v-model="basemap"
     class="basemap-selector"
     size="small"
-    fill="rgb(81, 103, 101)"
+    fill="#758a99"
     @change="changeBasemap"
   >
     <el-radio-button class="radio-btn" label="矢量底图" />
     <el-radio-button class="radio-btn" label="影像底图" />
   </el-radio-group>
+  <div id="legend">
+    <!-- TODO:v-if图层加载 -->
+    <el-row><span style="font-weight: bold; margin: 1vh">图层</span></el-row>
+    <el-row
+      :style="{
+        opacity: layerState.units.show ? 1 : 0.5,
+        margin: '0.5vh',
+      }"
+      align="middle"
+    >
+      <el-col :span="6" class="legend-icon"
+        ><img src="@/assets/circle.svg" alt="SVG Logo" width="10" height="10"
+      /></el-col>
+      <el-col :span="14"><span>三普文物</span></el-col>
+      <el-col
+        :span="4"
+        class="legend-icon"
+        style="cursor: pointer"
+        @click="updateLayerState('units')"
+        ><el-icon color="#838383" size="15"><Hide /></el-icon
+      ></el-col>
+    </el-row>
+    <el-row
+      :style="{
+        opacity: layerState.buildings.show ? 1 : 0.5,
+        margin: '0.5vh',
+      }"
+    >
+      <el-col :span="6" class="legend-icon"
+        ><img src="/building.png" width="15" height="15"
+      /></el-col>
+      <el-col :span="14"><span>测绘数据</span></el-col>
+      <el-col
+        :span="4"
+        class="legend-icon"
+        style="cursor: pointer"
+        @click="updateLayerState('buildings')"
+        ><el-icon color="#838383" size="15"><Hide /></el-icon
+      ></el-col>
+    </el-row>
+  </div>
 </template>
 
 <script>
@@ -56,6 +98,7 @@ import leftBar from "@/components/leftBar.vue";
 // import infoBox from "@/components/infoBox.vue";
 import mapDraw from "@/components/mapDraw.vue";
 import dataManagement from "@/components/dataManagement.vue";
+import mapPopup from "@/components/mapPopup.vue";
 import {
   defineComponent,
   onMounted,
@@ -63,8 +106,9 @@ import {
   computed,
   provide,
   getCurrentInstance,
+  createApp,
 } from "vue";
-import { FullScreen } from "@element-plus/icons-vue";
+import { FullScreen, Hide } from "@element-plus/icons-vue";
 //import { useStore } from "@/stores/index.js";
 
 export default defineComponent({
@@ -83,6 +127,26 @@ const { proxy } = getCurrentInstance();
 
 var map = null;
 var draw = null;
+var popup = null; //唯一弹框实例
+
+// 图层状态
+const layerState = ref({
+  units: {
+    show: true,
+    layers: [
+      "point-vector",
+      "line-vector",
+      "polygon-vector",
+      "point-label",
+      "line-label",
+      "polygon-label",
+    ],
+  },
+  buildings: {
+    show: true,
+    layers: ["building-line-vector", "building-point", "building-label"],
+  },
+});
 
 const viewState = {
   latitude: 28.540177,
@@ -100,7 +164,7 @@ const styleConfig = {
       label: "大小",
       default: 0,
       options: [
-        { value: 5, label: "小" },
+        { value: 4, label: "小" },
         { value: 8, label: "中" },
         { value: 12, label: "大" },
       ],
@@ -112,7 +176,7 @@ const styleConfig = {
       options: [
         { value: "#636363", label: "灰色" },
         { value: "#F50000", label: "红色" },
-        { value: "#0008B6", label: "蓝色" },
+        { value: "#86B7C2", label: "蓝色" },
         { value: "#108013", label: "绿色" },
       ],
     },
@@ -122,7 +186,7 @@ const styleConfig = {
       default: 1,
       options: [
         { value: 0, label: "无" },
-        { value: 2, label: "有" },
+        { value: 1, label: "有" },
       ],
     },
   },
@@ -189,26 +253,75 @@ provide("styleConfig", styleConfig);
 
 const data = ref(null);
 const manageDlgOn = ref(false);
-
 const basemap = ref("矢量底图"); //底图
-
 const mapList = [
   { name: "矢量底图", layerId: "tian-vector", anoLayerId: "tian-vector-ano" },
   { name: "影像底图", layerId: "tian-raster", anoLayerId: "tian-raster-ano" },
 ];
-
 var currentUnitId = ref("");
-
 const currentUnitName = computed(function () {
   return data.value.find((item) => item.id === currentUnitId.value).name;
 });
 
+// 管理图层状态
+function updateLayerState(layerName) {
+  layerState.value[layerName].show = !layerState.value[layerName].show;
+  for (let key in layerState.value) {
+    for (let layer of layerState.value[key].layers) {
+      map.setLayoutProperty(
+        layer,
+        "visibility",
+        layerState.value[key].show ? "visible" : "none"
+      );
+    }
+  }
+}
+
+function showPopup(id, lnglat) {
+  popup = new mapboxgl.Popup({
+    className: "popup",
+    closeButton: false,
+    closeOnClick: false,
+    closeOnMove: false,
+    focusAfterOpen: false,
+    maxWidth: "100%",
+    offset: 5,
+  });
+
+  const container = document.createElement("div");
+  createApp(mapPopup, {
+    unitId: id,
+  }).mount(container);
+
+  popup.setLngLat(lnglat).setDOMContent(container).addTo(map);
+  return popup;
+}
+
 function changeCurrentUnit(id) {
   currentUnitId.value = id;
+
+  // proxy.$axios
+  //   .get(`/api/units/features/center/${id}`, { responseType: "json" })
+  //   .then((res) => {
+  //     let center = res.data.data;
+  //     addComponentPopup(mapPopup, id, center);
+  //   });
 }
 
 function clearCurrentUnit() {
   currentUnitId.value = "";
+}
+
+function showBuilding(id) {
+  proxy.$axios.get(`/api/buildings/${id}`, { responseType: "json" }).then((res) => {
+    let { center_x, center_y } = res.data.data;
+    map.easeTo({
+      zoom: 16,
+      center: [center_x, center_y],
+      pitch: 0,
+      bearing: 0,
+    });
+  });
 }
 
 function refreshData() {
@@ -259,6 +372,7 @@ onMounted(async () => {
     //interactive: false,
     style: {
       version: 8,
+      glyphs: "mapbox://fonts/mapbox/{fontstack}/{range}.pbf", //不采用默认底图的情况下无法生成标注
       sources: {
         //天地图底图分成底图和注记两部分，需设置两个数据源
         "tian-vector": {
@@ -351,9 +465,9 @@ onMounted(async () => {
   map.on("load", async function () {
     await proxy.$axios.get("/api/units/info", { responseType: "json" }).then((res) => {
       data.value = res.data.data;
-      createVectorLayers();
-      // 创建定位图层，确定图层顺序
-      createLocateLayers();
+      createLocateLayers(); // 创建定位图层，确定图层顺序
+      createUnitVectorLayers();
+      createBuildingLayers();
 
       draw = new MapboxDraw({
         displayControlsDefault: false,
@@ -366,12 +480,12 @@ onMounted(async () => {
     });
   });
 
-  async function createVectorLayers() {
-    var mapVersion;
-    await proxy.$axios.get("/api/map/version", { responseType: "json" }).then((res) => {
-      mapVersion = res.data.data;
-      console.log(mapVersion);
-    });
+  async function createUnitVectorLayers() {
+    // var mapVersion;
+    // await proxy.$axios.get("/api/map/version", { responseType: "json" }).then((res) => {
+    //   mapVersion = res.data.data;
+    //   console.log(mapVersion);
+    // });
 
     map.addSource("vector-source", {
       type: "vector",
@@ -381,13 +495,12 @@ onMounted(async () => {
       //     mapVersion,
       // ],
       scheme: "xyz",
-      tiles: [import.meta.env.VITE_APP_SERVER_URL + "/api/map/getMvt/{z}/{x}/{y}"],
+      tiles: [import.meta.env.VITE_APP_SERVER_URL + "/api/map/mvt/units/{z}/{x}/{y}"],
     });
 
     map.addLayer({
       id: "polygon-vector",
       type: "fill",
-      // source-layer 是 Geoserver 图层的名称即 上面 URL 的 title
       source: "vector-source",
       "source-layer": "polygon",
       paint: {
@@ -399,7 +512,6 @@ onMounted(async () => {
     map.addLayer({
       id: "line-vector",
       type: "line",
-      // source-layer 是 Geoserver 图层的名称即 上面 URL 的 title
       source: "vector-source",
       "source-layer": "line",
       paint: {
@@ -412,7 +524,6 @@ onMounted(async () => {
     map.addLayer({
       id: "point-vector",
       type: "circle",
-      // source-layer 是 Geoserver 图层的名称即 上面 URL 的 title
       source: "vector-source",
       "source-layer": "point",
       paint: {
@@ -428,6 +539,208 @@ onMounted(async () => {
         "circle-stroke-color": "#FEFEFE",
       },
     });
+
+    // 添加标注图层
+    map.addLayer({
+      id: "polygon-label",
+      type: "symbol",
+      source: "vector-source",
+      "source-layer": "polygon",
+      layout: {
+        "text-field": ["get", "label"],
+        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 2, 0, 5, 5, 15, 10, 22, 25],
+        "text-offset": [0, 1.5],
+        "text-letter-spacing": 0.1,
+        "text-max-width": 10,
+        "symbol-sort-key": 999,
+      },
+      paint: {
+        "text-color": "#630080",
+        "text-halo-color": "#fff",
+        "text-opacity": ["step", ["zoom"], 0, 10, 1],
+        "text-halo-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          1,
+          0,
+          5,
+          0.2,
+          9,
+          0.1,
+          10,
+          0.5,
+          22,
+          1,
+        ],
+      },
+      filter: ["==", ["get", "use_label"], true],
+    });
+
+    map.addLayer({
+      id: "line-label",
+      type: "symbol",
+      source: "vector-source",
+      "source-layer": "line",
+      layout: {
+        "text-field": ["get", "label"],
+        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 2, 0, 5, 5, 10, 10, 22, 20],
+        "text-offset": [0, 1.5],
+        "text-letter-spacing": 0.1,
+        "text-max-width": 10,
+        "symbol-placement": "line-center", //标注位置
+        "symbol-sort-key": 999,
+      },
+      paint: {
+        "text-color": "#22227E",
+        "text-halo-color": "#fff",
+        "text-opacity": ["step", ["zoom"], 0, 10, 1],
+        "text-halo-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          1,
+          0,
+          5,
+          0.2,
+          9,
+          0.1,
+          10,
+          0.5,
+          22,
+          1,
+        ],
+      },
+      filter: ["==", ["get", "use_label"], true],
+    });
+
+    map.addLayer({
+      id: "point-label",
+      type: "symbol",
+      source: "vector-source",
+      "source-layer": "point",
+      layout: {
+        "text-field": ["get", "label"],
+        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 2, 0, 5, 4, 10, 7, 22, 16],
+        "text-offset": [0, 1.5],
+        "text-letter-spacing": 0.1,
+        "text-max-width": 10,
+        "symbol-sort-key": 999,
+      },
+      paint: {
+        "text-color": "#7CAAB0",
+        "text-halo-color": "#fff",
+        "text-opacity": ["step", ["zoom"], 0, 11, 1],
+        "text-halo-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          1,
+          0,
+          5,
+          0.2,
+          9,
+          0.1,
+          10,
+          0.5,
+          22,
+          1,
+        ],
+      },
+      filter: ["==", ["get", "use_label"], true],
+    });
+  }
+
+  async function createBuildingLayers() {
+    map.addSource("building-vector-source", {
+      type: "vector",
+      scheme: "xyz",
+      tiles: [import.meta.env.VITE_APP_SERVER_URL + "/api/map/mvt/buildings/{z}/{x}/{y}"],
+    });
+
+    map.addLayer({
+      id: "building-line-vector",
+      type: "line",
+      source: "building-vector-source",
+      "source-layer": "building_line",
+      paint: {
+        "line-color": ["get", "color"],
+        "line-width": 1,
+        "line-opacity": ["step", ["zoom"], 0, 13, 1],
+      },
+    });
+
+    proxy.$axios
+      .get("/api/buildings/geojson/centers", { responseType: "json" })
+      .then((res) => {
+        let centers = res.data;
+        map.addSource("building-centers", {
+          type: "geojson",
+          data: centers,
+        });
+
+        map.loadImage("/building.png", (error, image) => {
+          map.addImage("icon-building", image);
+          map.addLayer({
+            id: "building-point",
+            //type: "circle",
+            type: "symbol",
+            //icon: "./assets/building.svg",
+            source: "building-centers",
+            layout: {
+              // "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 4, 15, 8],
+              // "circle-color": "#B2240E",
+              // "circle-stroke-width": 2,
+              // "circle-stroke-color": "#FEFEFE",
+              "icon-image": "icon-building",
+              "icon-padding": 0,
+              //'icon-allow-overlap': true,
+              "icon-size": 0.8,
+            },
+            paint: {
+              "icon-color": "#E5B374",
+            },
+          });
+        });
+
+        map.addLayer({
+          id: "building-label",
+          type: "symbol",
+          source: "building-centers",
+          layout: {
+            "text-field": ["get", "name"],
+            "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+            "text-size": ["interpolate", ["linear"], ["zoom"], 2, 0, 5, 4, 10, 8, 22, 18],
+            "text-offset": [0, 2],
+            "text-letter-spacing": 0.1,
+            "text-max-width": 15,
+            "symbol-sort-key": 999,
+          },
+          paint: {
+            "text-color": "#DB6316",
+            "text-halo-color": "#fff",
+            "text-opacity": ["step", ["zoom"], 0, 10, 1],
+            "text-halo-width": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              1,
+              0,
+              5,
+              0.2,
+              9,
+              0.1,
+              10,
+              0.5,
+              22,
+              1,
+            ],
+          },
+        });
+      });
   }
 
   /////
@@ -481,30 +794,37 @@ onMounted(async () => {
     });
     if (states.length) {
       try {
-        currentUnitId.value = states[0].properties.unit_id;
+        changeCurrentUnit(states[0].properties.unit_id);
+        //currentUnitId.value = states[0].properties.unit_id;
       } catch (error) {
         console.error("Error choosing unit", error);
       }
     }
   });
 
-  map.on("mouseenter", "point-vector", () => {
+  map.on("mouseenter", "point-vector", (e) => {
     map.getCanvas().style.cursor = "pointer";
+    showPopup(e.features[0].properties.unit_id, e.lngLat);
   });
-  map.on("mouseenter", "line-vector", () => {
+  map.on("mouseenter", "line-vector", (e) => {
     map.getCanvas().style.cursor = "pointer";
+    // showPopup(e.features[0].properties.unit_id, e.lngLat)
   });
-  map.on("mouseenter", "polygon-vector", () => {
+  map.on("mouseenter", "polygon-vector", (e) => {
     map.getCanvas().style.cursor = "pointer";
+    // showPopup(e.features[0].properties.unit_id, e.lngLat)
   });
   map.on("mouseleave", "point-vector", () => {
     map.getCanvas().style.cursor = "";
+    popup.remove();
   });
   map.on("mouseleave", "line-vector", () => {
     map.getCanvas().style.cursor = "";
+    // popup.remove();
   });
   map.on("mouseleave", "polygon-vector", () => {
     map.getCanvas().style.cursor = "";
+    // popup.remove();
   });
 });
 </script>
@@ -549,5 +869,33 @@ onMounted(async () => {
   position: absolute;
   left: 24vw;
   bottom: 2vh;
+}
+
+#legend {
+  position: absolute;
+  left: 24vw;
+  bottom: 9vh;
+  width: 9vw;
+  height: 12vh;
+  padding: 1vh 0.5vw;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  font-size: calc(0.6vh + 0.6vw);
+
+  .legend-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+:deep(.popup) {
+  .mapboxgl-popup-content {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
 }
 </style>
