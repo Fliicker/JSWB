@@ -6,14 +6,13 @@ export const useUserStore = defineStore('user', () => {
   const id = ref(null);
   const username = ref(null);
   const role = ref(null);
-  const token = ref(null);
 
   function login(_id, _username, _role, _token) {
     isLoggedIn.value = true;
     id.value = _id
     username.value = _username;
     role.value = _role;
-    token.value = _token
+    window.sessionStorage.setItem("token", _token);
   }
 
   function logout() {
@@ -21,8 +20,8 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn.value = false;
     username.value = null;
     role.value = null;
-    token.value = null;
+    window.sessionStorage.setItem("token", null);
   }
 
-  return { isLoggedIn, id, username, role, token, login, logout }
+  return { isLoggedIn, id, username, role, login, logout }
 });

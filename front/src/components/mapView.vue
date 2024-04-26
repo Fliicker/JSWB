@@ -668,10 +668,10 @@ onMounted(async () => {
       "source-layer": "building_line",
       paint: {
         "line-color": ["get", "color"],
-        "line-width": 1,
-        "line-opacity": ["step", ["zoom"], 0, 13, 1],
+        "line-width": ["step", ["zoom"], 0, 13, 1],
+        "line-opacity": ["match", ["get", 'highlight'], 0, 0.2, 1, 1, 0.2]
       },
-    });
+    }, 'buildingLocation');
 
     proxy.$axios
       .get("/api/buildings/geojson/centers", { responseType: "json" })
@@ -747,6 +747,19 @@ onMounted(async () => {
   ////  创建点、线、面的空图层，实现图层定位，使后续添加的所有图层显示顺序为面——线——点
   /////
   function createLocateLayers() {
+    map.addLayer({
+      id: "buildingLocation",
+      type: "fill",
+      source: {
+        type: "geojson",
+        data: null,
+      },
+      paint: {},
+      layout: {
+        visibility: "visible",
+      },
+    });
+
     map.addLayer({
       id: "fillLocation",
       type: "fill",

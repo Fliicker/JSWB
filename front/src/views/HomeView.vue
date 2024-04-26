@@ -2,7 +2,7 @@
   <div class="home">
     <!-- <div class="header map-overlay"> -->
     <el-row align="middle" class="header">
-      <el-col :span="17" style="display: flex; align-items: center"
+      <el-col :span="15" style="display: flex; align-items: center"
         ><img src="@/assets/logo.png" width="22" height="22" />&nbsp;&nbsp;
         <span id="title">江山市文物保护单位信息管理平台</span>
       </el-col>
@@ -14,19 +14,23 @@
           >您好，{{ userStore.username }}</span
         ></el-col
       >
-      <el-col :span="1"></el-col>
-      <el-col :span="2" style="display: flex; align-items: center"
-        ><el-icon color="#474b4d"><UserFilled /></el-icon>&nbsp;
-        <RouterLink to="/login" v-if="!userStore.isLoggedIn"
-          ><span class="header-text">登录</span></RouterLink
-        >
-        <!-- <RouterLink to="/register" v-if="!userStore.isLoggedIn"
-          ><span>注册</span></RouterLink
-        > -->
-        <!-- <span v-if="userStore.isLoggedIn" class="header-text" @click="userStore.logout">退出</span> -->
-        <RouterLink to="/user" v-if="userStore.isLoggedIn"
-          ><span class="header-text">操作日志</span></RouterLink
-        >
+      <el-col
+        :span="5"
+        style="display: flex; justify-content: center; align-items: center"
+      >
+        <el-icon color="#474b4d"><UserFilled /></el-icon>&nbsp;
+        <div v-if="userStore.isLoggedIn">
+          <RouterLink to="/user"><span class="header-text">操作日志</span></RouterLink>
+          &nbsp;|&nbsp;
+          <span class="header-text" @click="logout()" style="cursor: pointer"
+            >退出登录</span
+          >
+        </div>
+        <div v-if="!userStore.isLoggedIn">
+          <RouterLink to="/login" style="display: flex; justify-content: flex-end"
+            ><span class="header-text">登录</span></RouterLink
+          >
+        </div>
       </el-col>
     </el-row>
     <!-- </div> -->
@@ -54,6 +58,17 @@ export default {
 <script setup>
 const userStore = useUserStore();
 
+const logout = () => {
+  ElMessageBox.confirm("是否退出登录？", "提示", {
+    confirmButtonText: "是",
+    cancelButtonText: "否",
+    type: "info",
+  })
+    .then(() => {
+      userStore.logout();
+    })
+    .catch((error) => {});
+};
 </script>
 
 <style lang="scss" scoped>

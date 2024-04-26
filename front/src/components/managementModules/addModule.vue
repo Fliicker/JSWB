@@ -74,7 +74,6 @@ async function addARecord() {
       proxy.$axios
         .post("/units/info", newdata.value)
         .then((res) => {
-          console.log(res.data);
           console.log("submit!");
 
           ElNotification({

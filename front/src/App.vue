@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import { defineComponent, getCurrentInstance } from "vue";
 import { ElConfigProvider } from "element-plus";
 
 export default defineComponent({
@@ -19,6 +19,29 @@ export default defineComponent({
     };
   },
 });
+</script>
+
+<script setup>
+import { useUserStore } from "@/stores/index.js";
+const { proxy } = getCurrentInstance();
+
+const userStore = useUserStore();
+
+// 启动时根据token自动登录
+if (window.sessionStorage.getItem("token")) {
+  proxy.$axios
+    .get(`/user/verification`, {
+      responseType: "json",
+    })
+    .then((res) => {
+      const { id, username, role_id } = res.data.data;
+      userStore.id = id;
+      userStore.username = username;
+      userStore.role = role_id;
+      userStore.isLoggedIn = true;
+    })
+    .catch((error) => {});
+}
 </script>
 
 <style>

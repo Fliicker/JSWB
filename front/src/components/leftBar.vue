@@ -318,7 +318,6 @@ function deleteById(unitid) {
       proxy.$axios
         .delete(`/units/info/${unitid}`)
         .then((res) => {
-          console.log(res.data);
           emit("refreshData");
           ElNotification({
             title: "成功",
@@ -390,8 +389,8 @@ function updateVectorLayers() {
 async function exportBuilding(id) {
   if (userStore.isLoggedIn) {
     ElMessageBox.confirm("是否下载该矢量文件？", "提示", {
-      confirmButtonText: "确认",
-      cancelButtonText: "取消",
+      confirmButtonText: "是",
+      cancelButtonText: "否",
       type: "info",
     })
       .then(() => {

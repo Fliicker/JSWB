@@ -187,7 +187,7 @@
       <el-carousel-item v-for="imgURL in imgURLs.value" :key="imgURL">
         <el-scrollbar>
           <img
-            :src="'http://localhost:8181/api/units/resources/images' + imgURL"
+            :src="imgsrc(imgURL)"
             alt="预览图片"
             style="width: 100%; height: 100%"
           />
@@ -248,6 +248,12 @@ const drawTypeOptions = [
 const props = defineProps(["unitId", "unitName", "map", "draw"]);
 const map = props.map;
 const draw = props.draw;
+
+const imgsrc = computed(() => {
+  return function (imgURL) {
+    return import.meta.env.VITE_APP_SERVER_URL + '/api/units/resources/images' + imgURL;
+  };
+});
 
 const drawData = ref([]);
 var tempData = []; //暂存初始数据，供判断对象是否更改

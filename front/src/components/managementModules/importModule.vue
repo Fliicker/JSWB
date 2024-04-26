@@ -248,7 +248,6 @@ function httpRequest({ file }) {
         if (uploadData.value.length > 0) {
           uploadFields = Object.keys(uploadData.value[0]);
         }
-        console.log(uploadData.value);
         ElNotification({
           title: "成功",
           message: `文件 ${file.name} 上传成功！`,
@@ -284,7 +283,6 @@ function importData() {
   proxy.$axios
     .post("/units/info/batch", reconstructedData)
     .then((res) => {
-      console.log(res.data);
       ElNotification({
         title: "成功",
         message: "数据导入成功！",

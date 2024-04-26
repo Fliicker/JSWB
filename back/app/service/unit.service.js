@@ -4,9 +4,6 @@ const pool = require('../db');
 const MapService = require('./map.service')
 const fileConfig = require('../../config/fileConfig')
 const fs = require('fs')
-const libre = require('libreoffice-convert');
-
-const PDFDocument = require('pdfkit');
 const path = require('path');
 
 class UnitService {

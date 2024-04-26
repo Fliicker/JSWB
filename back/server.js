@@ -94,6 +94,7 @@ app.post('/api/user/login', UserController.getUser);
 app.post('/api/user/register', UserController.addUser);
 app.get('/user/actions/', UserController.getUserActions)
 app.get('/user/actions/:id', UserController.getUserActionsById)
+app.get('/user/verification', UserController.verifyToken)
 
 
 /////
