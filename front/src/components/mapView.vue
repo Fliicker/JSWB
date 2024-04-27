@@ -378,14 +378,14 @@ onMounted(async () => {
         "tian-vector": {
           type: "raster",
           tiles: [
-            "https://t0.tianditu.gov.cn/DataServer?T=vec_w&x={x}&y={y}&l={z}&tk=87f6202bcdca16c21efc427b97b7d643",
+            "https://t0.tianditu.gov.cn/DataServer?T=vec_w&x={x}&y={y}&l={z}&tk=eeebdd438672a3da17f056e0e90ea330",
           ],
           tileSize: 256,
         },
         "tian-vector-ano": {
           type: "raster",
           tiles: [
-            "https://t0.tianditu.gov.cn/DataServer?T=cva_w&x={x}&y={y}&l={z}&tk=87f6202bcdca16c21efc427b97b7d643",
+            "https://t0.tianditu.gov.cn/DataServer?T=cva_w&x={x}&y={y}&l={z}&tk=eeebdd438672a3da17f056e0e90ea330",
           ],
           tileSize: 256,
         },
@@ -393,7 +393,7 @@ onMounted(async () => {
         "tian-raster": {
           type: "raster",
           tiles: [
-            "https://t0.tianditu.gov.cn/DataServer?T=img_w&x={x}&y={y}&l={z}&tk=87f6202bcdca16c21efc427b97b7d643",
+            "https://t0.tianditu.gov.cn/DataServer?T=img_w&x={x}&y={y}&l={z}&tk=eeebdd438672a3da17f056e0e90ea330",
             // "http://t0.tianditu.gov.cn/img_w/wmts?tk=87f6202bcdca16c21efc427b97b7d643&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles",
           ],
           tileSize: 256,
@@ -401,7 +401,7 @@ onMounted(async () => {
         "tian-raster-ano": {
           type: "raster",
           tiles: [
-            "https://t0.tianditu.gov.cn/DataServer?T=cia_w&x={x}&y={y}&l={z}&tk=87f6202bcdca16c21efc427b97b7d643",
+            "https://t0.tianditu.gov.cn/DataServer?T=cia_w&x={x}&y={y}&l={z}&tk=eeebdd438672a3da17f056e0e90ea330",
             // "http://t0.tianditu.gov.cn/cva_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=vec&tileMatrixSet=w&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=tiles&tk=87f6202bcdca16c21efc427b97b7d643",
           ],
           tileSize: 256,
@@ -537,6 +537,8 @@ onMounted(async () => {
           "stroke_width"
         ),
         "circle-stroke-color": "#FEFEFE",
+        "circle-opacity": ["match", ["get", "confirmed"], 1, 1, 0, 0.1, 0.1],
+        "circle-stroke-opacity": ["match", ["get", "confirmed"], 1, 1, 0, 0.1, 0.1],
       },
     });
 
@@ -633,7 +635,7 @@ onMounted(async () => {
       paint: {
         "text-color": "#7CAAB0",
         "text-halo-color": "#fff",
-        "text-opacity": ["step", ["zoom"], 0, 11, 1],
+        "text-opacity": ["step", ["zoom"], 0, 11, ["match", ["get", "confirmed"], 1, 1, 0, 0.5, 0.5]],
         "text-halo-width": [
           "interpolate",
           ["linear"],
@@ -661,17 +663,20 @@ onMounted(async () => {
       tiles: [import.meta.env.VITE_APP_SERVER_URL + "/api/map/mvt/buildings/{z}/{x}/{y}"],
     });
 
-    map.addLayer({
-      id: "building-line-vector",
-      type: "line",
-      source: "building-vector-source",
-      "source-layer": "building_line",
-      paint: {
-        "line-color": ["get", "color"],
-        "line-width": ["step", ["zoom"], 0, 13, 1],
-        "line-opacity": ["match", ["get", 'highlight'], 0, 0.2, 1, 1, 0.2]
+    map.addLayer(
+      {
+        id: "building-line-vector",
+        type: "line",
+        source: "building-vector-source",
+        "source-layer": "building_line",
+        paint: {
+          "line-color": ["get", "color"],
+          "line-width": ["step", ["zoom"], 0, 13, 1],
+          "line-opacity": ["match", ["get", "highlight"], 0, 0.2, 1, 1, 0.2],
+        },
       },
-    }, 'buildingLocation');
+      "buildingLocation"
+    );
 
     proxy.$axios
       .get("/api/buildings/geojson/centers", { responseType: "json" })

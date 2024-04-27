@@ -94,7 +94,7 @@
                   <el-button
                     size="small"
                     color="#758a99"
-                    style="color:#fff"
+                    style="color: #fff"
                     @click="addDrawLayer()"
                   >
                     确定
@@ -186,11 +186,7 @@
     <el-carousel trigger="click" :autoplay="false" height="85vh" :loop="false">
       <el-carousel-item v-for="imgURL in imgURLs.value" :key="imgURL">
         <el-scrollbar>
-          <img
-            :src="imgsrc(imgURL)"
-            alt="预览图片"
-            style="width: 100%; height: 100%"
-          />
+          <img :src="imgsrc(imgURL)" alt="预览图片" style="width: 100%; height: 100%" />
         </el-scrollbar>
         <!-- <el-image
             :src="'http://localhost:8181/api/units/resources/images' + imgURL" fit='cover'
@@ -251,7 +247,7 @@ const draw = props.draw;
 
 const imgsrc = computed(() => {
   return function (imgURL) {
-    return import.meta.env.VITE_APP_SERVER_URL + '/api/units/resources/images' + imgURL;
+    return import.meta.env.VITE_APP_SERVER_URL + "/api/units/resources/images" + imgURL;
   };
 });
 
@@ -583,8 +579,31 @@ function hideVectorLayers() {
   map.setFilter("polygon-vector", ["!=", ["get", "unit_id"], props.unitId]);
 
   map.setPaintProperty("point-vector", "circle-opacity", 0.2);
+  map.setPaintProperty("point-vector", "circle-stroke-opacity", 0.2);
   map.setPaintProperty("line-vector", "line-opacity", 0.2);
   map.setPaintProperty("polygon-vector", "fill-opacity", 0.2);
+
+  map.setPaintProperty("point-label", "text-opacity", [
+    "match",
+    ["get", "unit_id"],
+    props.unitId,
+    1,
+    0.5,
+  ]);
+  map.setPaintProperty("line-label", "text-opacity", [
+    "match",
+    ["get", "unit_id"],
+    props.unitId,
+    1,
+    0.5,
+  ]);
+  map.setPaintProperty("polygon-label", "text-opacity", [
+    "match",
+    ["get", "unit_id"],
+    props.unitId,
+    1,
+    0.5,
+  ]);
 }
 
 //显示全部瓦片图层
@@ -592,7 +611,25 @@ function showVectorLayers() {
   map.setFilter("point-vector", null);
   map.setFilter("line-vector", null);
   map.setFilter("polygon-vector", null);
-  map.setPaintProperty("point-vector", "circle-opacity", 1);
+  //map.setPaintProperty("point-vector", "circle-opacity", 1);
+  map.setPaintProperty("point-vector", "circle-opacity", [
+    "match",
+    ["get", "confirmed"],
+    1,
+    1,
+    0,
+    0.1,
+    0.1,
+  ]);
+  map.setPaintProperty("point-vector", "circle-stroke-opacity", [
+    "match",
+    ["get", "confirmed"],
+    1,
+    1,
+    0,
+    0.1,
+    0.1,
+  ]);
   map.setPaintProperty("line-vector", "line-opacity", 1);
 
   var matchStatement = ["match", ["get", "opacity"]];
@@ -605,6 +642,10 @@ function showVectorLayers() {
   matchStatement.push(styleObj.options[styleObj.default].value);
 
   map.setPaintProperty("polygon-vector", "fill-opacity", matchStatement);
+
+  map.setPaintProperty("point-label", "text-opacity", ["step", ["zoom"], 0, 11, ["match", ["get", "confirmed"], 1, 1, 0, 0.5, 0.5]])
+  map.setPaintProperty("line-label", "text-opacity", ["step", ["zoom"], 0, 10, 1])
+  map.setPaintProperty("polygon-label", "text-opacity", ["step", ["zoom"], 0, 10, 1])
 }
 
 function updateVectorLayers() {
@@ -678,7 +719,7 @@ function saveAll() {
   if (!userStore.isLoggedIn) return;
 
   // 检测是否发生数据变化，若未变化则不保存
-  if (deepEqual(drawData.value, tempData)) return;    
+  if (deepEqual(drawData.value, tempData)) return;
 
   const loadingInstance = ElLoading.service(loadingOptions);
   document.body.classList.remove("el-loading-parent--relative");
@@ -688,7 +729,7 @@ function saveAll() {
     .then((res) => {
       updateVectorLayers();
       loadingInstance.close();
-      tempData = drawData.value
+      tempData = drawData.value;
     })
     .catch((error) => {
       loadingInstance.close();
