@@ -14,12 +14,12 @@
       <el-row>
         <el-upload
           ref="upload"
-          class="upload-demo"
-          action="#"
+          :action="uploadURL"
+          :headers="headers" 
           :limit="1"
           :on-exceed="handleExceed"
           :show-file-list="false"
-          :http-request="httpRequest"
+          :on-success="httpRequest"
           :accept="typeRadio === 'type1' ? '.xlsx,.xls' : '.txt,.csv'"
         >
           <el-button class="btn-upload"> 上传文件 </el-button>
@@ -151,6 +151,11 @@ export default defineComponent({
 <script setup>
 const { proxy } = getCurrentInstance();
 
+const uploadURL = import.meta.env.VITE_APP_SERVER_URL + "/units/info/upload/excel";
+const headers = {
+  Authorization: window.sessionStorage.getItem('token'),
+};
+
 const typeRadio = ref("type1"); //上传格式
 const importOptionRadio = ref("opt1"); //导入方式
 
@@ -186,7 +191,9 @@ const submitUpload = () => {
   upload.value.submit();
 };
 
-function httpRequest({ file }) {
+function httpRequest(data) {
+  const { file } = data;
+  console.log(data);
   if (typeRadio.value == "type1") {
     //定义reader，存放文件读取方法
     let reader = new FileReader();

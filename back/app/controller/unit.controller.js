@@ -1,6 +1,7 @@
 const unitService = require('../service/unit.service');
 const userService = require('../service/user.service')
 const fs = require('fs')
+const xlsx = require('xlsx');
 
 class UnitController {
   async getUnitList(req, res) {
@@ -164,6 +165,43 @@ class UnitController {
       data: imgPaths,
       message: "success"
     });
+  }
+
+  async uploadExcel(req, res) {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+    }
+
+    try {
+      const workbook = xlsx.readFile(req.file.path);
+      //定义sheetList中存放excel表格的sheet表，就是最下方的tab
+      let sheet = workbook.SheetNames[0]; // 工作表名称(选第一个sheet)
+      let worksheet = workbook.Sheets[sheet]; // 只能通过工作表名称来获取指定工作表
+      let results = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 0 }); // Xlsx解析工作表信息 header: 1 含表头  range: 0 从第一行开始读取不设置从有实际内容开始读取
+      // 由行数组重构为对象数组
+      const arr = [];
+
+      results.forEach((row, index) => {
+        const userInfo = {};
+        if (index > 0) {
+          results[0].forEach((field, i) => {
+            userInfo[field] = row[i] || "";
+          });
+          arr.push(userInfo);
+        }
+      });
+
+      fs.unlink(req.file.path);
+
+      res.status(200).send({
+        status: 200,
+        data: arr,
+        message: "success"
+      });
+
+    } catch (err) {
+
+    }
   }
 }
 

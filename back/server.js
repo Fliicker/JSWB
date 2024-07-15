@@ -1,10 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path')
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken')
 const { expressjwt: expressJWT } = require('express-jwt')
 const jwtConfig = require('./config/jwtConfig')
 const fileConfig = require('./config/fileConfig')
+const multer = require('multer');
 
 const unitController = require('./app/controller/unit.controller');
 const drawController = require('./app/controller/draw.controller');
@@ -58,6 +60,29 @@ app.use((req, res, next) => {
   }
 });
 
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/upload")
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now())
+  }
+})
+
+const upload = multer({
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /xlsx|xls|txt|csv/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    if (extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('不支持的文件类型'));
+    }
+  },
+  storage: storage
+});
+
 // 文物属性接口
 app.get("/api/units/info", unitController.getUnitList);
 app.get("/api/units/info/:id", unitController.getUnitById);
@@ -65,6 +90,8 @@ app.post("/units/info", unitController.insertAUnit)
 app.post("/units/info/batch", unitController.insertUnits);
 app.delete("/units/info/:id", unitController.deleteUnitById);
 app.put('/units/info/:id', unitController.updateUnitById); //接收某一文物的属性记录，更新units数据库
+app.post('/units/info/upload/excel', upload.single('file'), unitController.uploadExcel);
+
 app.get('/units/resources/pdf/:id', unitController.exportPDFById);     //下载文物三普pdf
 app.get('/api/units/resources/images/list/:id', unitController.getImgListById);    //获取三普预览图路径列表
 app.use('/api/units/resources/images', express.static(fileConfig.imgPath)); //静态图片资源托管

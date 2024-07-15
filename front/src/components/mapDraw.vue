@@ -611,25 +611,26 @@ function showVectorLayers() {
   map.setFilter("point-vector", null);
   map.setFilter("line-vector", null);
   map.setFilter("polygon-vector", null);
-  //map.setPaintProperty("point-vector", "circle-opacity", 1);
-  map.setPaintProperty("point-vector", "circle-opacity", [
-    "match",
-    ["get", "confirmed"],
-    1,
-    1,
-    0,
-    0.1,
-    0.1,
-  ]);
-  map.setPaintProperty("point-vector", "circle-stroke-opacity", [
-    "match",
-    ["get", "confirmed"],
-    1,
-    1,
-    0,
-    0.1,
-    0.1,
-  ]);
+  map.setPaintProperty("point-vector", "circle-opacity", 1);
+  map.setPaintProperty("point-vector", "circle-stroke-opacity", 1);
+  // map.setPaintProperty("point-vector", "circle-opacity", [
+  //   "match",
+  //   ["get", "confirmed"],
+  //   1,
+  //   1,
+  //   0,
+  //   0.1,
+  //   0.1,
+  // ]);
+  // map.setPaintProperty("point-vector", "circle-stroke-opacity", [
+  //   "match",
+  //   ["get", "confirmed"],
+  //   1,
+  //   1,
+  //   0,
+  //   0.1,
+  //   0.1,
+  // ]);
   map.setPaintProperty("line-vector", "line-opacity", 1);
 
   var matchStatement = ["match", ["get", "opacity"]];
@@ -643,7 +644,8 @@ function showVectorLayers() {
 
   map.setPaintProperty("polygon-vector", "fill-opacity", matchStatement);
 
-  map.setPaintProperty("point-label", "text-opacity", ["step", ["zoom"], 0, 11, ["match", ["get", "confirmed"], 1, 1, 0, 0.5, 0.5]])
+  // map.setPaintProperty("point-label", "text-opacity", ["step", ["zoom"], 0, 11, ["match", ["get", "confirmed"], 1, 1, 0, 0.5, 0.5]])
+  map.setPaintProperty("point-label", "text-opacity", ["step", ["zoom"], 0, 11, 1])
   map.setPaintProperty("line-label", "text-opacity", ["step", ["zoom"], 0, 10, 1])
   map.setPaintProperty("polygon-label", "text-opacity", ["step", ["zoom"], 0, 10, 1])
 }

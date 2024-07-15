@@ -537,8 +537,8 @@ onMounted(async () => {
           "stroke_width"
         ),
         "circle-stroke-color": "#FEFEFE",
-        "circle-opacity": ["match", ["get", "confirmed"], 1, 1, 0, 0.1, 0.1],
-        "circle-stroke-opacity": ["match", ["get", "confirmed"], 1, 1, 0, 0.1, 0.1],
+        // "circle-opacity": ["match", ["get", "confirmed"], 1, 1, 0, 0.1, 0.1],
+        // "circle-stroke-opacity": ["match", ["get", "confirmed"], 1, 1, 0, 0.1, 0.1],
       },
     });
 
@@ -635,7 +635,7 @@ onMounted(async () => {
       paint: {
         "text-color": "#7CAAB0",
         "text-halo-color": "#fff",
-        "text-opacity": ["step", ["zoom"], 0, 11, ["match", ["get", "confirmed"], 1, 1, 0, 0.5, 0.5]],
+        // "text-opacity": ["step", ["zoom"], 0, 11, ["match", ["get", "confirmed"], 1, 1, 0, 0.5, 0.5]],
         "text-halo-width": [
           "interpolate",
           ["linear"],
